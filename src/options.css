@@ -1,0 +1,162 @@
+.options-panel {
+  max-width: 880px;
+  margin: 0 auto;
+  padding: 16px;
+}
+
+.option-group {
+  margin-bottom: 20px;
+}
+
+.option-group:last-child {
+  margin-bottom: 0;
+}
+
+.option-group-label {
+  font-size: 13px;
+  font-weight: 600;
+  color: #333;
+  margin-bottom: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.option-group-values {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.option-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 8px 18px;
+  font-size: 14px;
+  font-weight: 500;
+  border: 2px solid #ddd;
+  border-radius: 8px;
+  background: #fff;
+  color: #333;
+  cursor: pointer;
+  transition: border-color 0.2s, background 0.2s, opacity 0.2s;
+  white-space: nowrap;
+  user-select: none;
+}
+
+.option-btn:hover:not(:disabled) {
+  border-color: #999;
+}
+
+.option-btn.selected {
+  border-color: #111;
+  background: #111;
+  color: #fff;
+}
+
+.option-btn:disabled {
+  opacity: 0.35;
+  cursor: not-allowed;
+}
+
+.option-btn .price-diff {
+  font-size: 11px;
+  opacity: 0.7;
+  font-weight: 400;
+}
+
+.option-btn.selected .price-diff {
+  opacity: 0.8;
+}
+
+.option-swatch {
+  display: inline-flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 10px;
+  border: 2px solid #ddd;
+  border-radius: 10px;
+  background: #fff;
+  cursor: pointer;
+  transition: border-color 0.2s, transform 0.2s;
+  min-width: 64px;
+  user-select: none;
+}
+
+.option-swatch:hover:not(:disabled) {
+  border-color: #999;
+}
+
+.option-swatch.selected {
+  border-color: #111;
+  transform: scale(1.05);
+}
+
+.option-swatch:disabled {
+  opacity: 0.35;
+  cursor: not-allowed;
+  transform: none;
+}
+
+.option-swatch-circle {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  border: 1px solid rgba(0,0,0,0.1);
+  flex-shrink: 0;
+}
+
+.option-swatch-label {
+  font-size: 11px;
+  color: #555;
+  text-align: center;
+  line-height: 1.2;
+}
+
+.option-swatch.selected .option-swatch-label {
+  color: #111;
+  font-weight: 600;
+}
+
+.options-scroll-wrap {
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: thin;
+  padding-bottom: 4px;
+}
+
+.options-scroll-wrap::-webkit-scrollbar {
+  height: 3px;
+}
+
+.options-scroll-wrap::-webkit-scrollbar-thumb {
+  background: #ccc;
+  border-radius: 2px;
+}
+
+@media (max-width: 480px) {
+  .options-panel {
+    padding: 12px 8px;
+  }
+
+  .option-group-values {
+    flex-wrap: nowrap;
+  }
+
+  .option-swatch {
+    min-width: 56px;
+    padding: 4px 8px;
+  }
+
+  .option-swatch-circle {
+    width: 30px;
+    height: 30px;
+  }
+
+  .option-btn {
+    padding: 6px 14px;
+    font-size: 13px;
+  }
+}
