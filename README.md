@@ -1,85 +1,110 @@
 # Конфигуратор мебели
 
-Визуальный конфигуратор мебели с переключением ракурсов, выбором опций, расчётом цены и отправкой в WhatsApp.
+Визуальный конфигуратор мебели с переключением 8 ракурсов, выбором опций, расчётом цены, хранением конфигурации в URL и отправкой заказа в WhatsApp.
+
+**Демо:** https://murkin1980.github.io/furniture-configurator/
 
 ## Быстрый старт
 
-Откройте `index.html` в браузере (достаточно Live Server или просто файла).
+Откройте `index.html` в браузере (Live Server или просто файлом).
+
+## Возможности
+
+- 8 ракурсов просмотра товара с навигацией (кнопки, клавиши, свайп)
+- Выбор материала, цвета, ножек, размера
+- Автоматическое обновление URL при изменении опций
+- Восстановление конфигурации из URL (deep-link)
+- Расчёт цены с разбивкой (базовая + надбавки)
+- Копирование ссылки на текущую конфигурацию
+- Отправка заказа в WhatsApp с полным описанием
 
 ## Добавление нового товара
 
 1. Откройте `src/config.js`
-2. Добавьте объект товара в массив `PRODUCTS`
-
-### Структура товара
+2. Добавьте объект в массив `PRODUCTS`
 
 ```js
 {
-  id: 'my-product',          // уникальный slug
-  name: 'Название товара',    // отображаемое имя
-  sku: 'ART-001',             // артикул
-  basePrice: 100000,          // базовая цена
-  currency: 'KZT',            // KZT | RUB | USD
+  id: 'my-product',
+  name: 'Название товара',
+  sku: 'ART-001',
+  basePrice: 100000,
+  currency: 'KZT',
   options: [
     {
-      id: 'material',         // ID группы опций
-      name: 'Материал',       // название группы
-      type: 'text',           // 'text' | 'color'
+      id: 'material',
+      name: 'Материал',
+      type: 'text',
       values: [
-        {
-          id: 'fabric',       // ID значения
-          name: 'Ткань',      // название
-          priceModifier: 0,   // надбавка к цене
-          imageSuffix: 'fabric', // суффикс для WebP
-          // для type: 'color' добавляется hex: '#FFFFF0'
-        },
+        { id: 'fabric', name: 'Ткань', priceModifier: 0, imageSuffix: 'fabric' },
+      ],
+    },
+    {
+      id: 'color',
+      name: 'Цвет',
+      type: 'color',
+      values: [
+        { id: 'ivory', name: 'Айвори', hex: '#FFFFF0', priceModifier: 0, imageSuffix: 'ivory' },
       ],
     },
   ],
 }
 ```
 
-### Опции с зависимостями
-
-Если цвет зависит от материала, укажите:
+### Зависимости опций
 
 ```js
-dependsOn: { option: 'material', values: { fabric: ['ivory', 'grey'], 'eco-leather': ['black', 'brown'] } }
+dependsOn: { option: 'material', values: { fabric: ['ivory', 'grey'], 'eco-leather': ['black'] } }
+availableFor: ['fabric', 'eco-leather']
 ```
-
-И для каждого цвета — `availableFor: ['fabric', 'eco-leather']`.
 
 ### Изображения
 
-Разместите WebP-рендеры товара в:
+WebP-рендеры в `products/{product-id}/images/{angle}-{material}-{color}-{legs}-{size}.webp`
 
-```
-products/{product-id}/images/{angle}-{material}-{color}-{legs}-{size}.webp
-```
-
-См. `docs/naming-convention.md` для полного описания.
+Для генерации изображений используйте Gemini-бота по инструкции `docs/gemini-bot-instruction.md`.
 
 ### Проверка
-
-После добавления запустите в консоли браузера:
 
 ```js
 validateProduct(PRODUCTS[PRODUCTS.length - 1])
 ```
 
+## Конфигурация WhatsApp
+
+Номер менеджера в `src/whatsapp.js`:
+
+```js
+const WA_NUMBER = '77059164337'; // +7 705 916 43 37
+```
+
 ## Структура проекта
 
 ```
-index.html           — точка входа
+index.html                — точка входа
 src/
-  config.js          — данные товаров
-  schema.js          — схема и валидация
-  urlSerializer.js   — конфигурация в URL и обратно
-  imageResolver.js   — разрешение пути к WebP
+  config.js               — данные товаров и цены
+  schema.js               — валидация схемы товара
+  urlSerializer.js        — сериализация конфига в URL
+  imageResolver.js        — путь к WebP по конфигу
+  viewer.js               — компонент просмотра (8 ракурсов)
+  viewer.css              — стили просмотрщика
+  options.js              — панель выбора опций
+  options.css             — стили опций
+  price.js                — отображение цены с разбивкой
+  price.css               — стили цены
+  whatsapp.js             — интеграция с WhatsApp
+  demo-art.js             — демо-SVG для тестирования (8 ракурсов)
 docs/
-  naming-convention.md — система именования файлов
+  naming-convention.md    — система именования WebP
+  gemini-bot-instruction.md — инструкция для Gemini-бота
 ```
 
-## Этапы разработки
+## Проверка Lighthouse
 
-См. `furniture_configurator_roadmap.html` в корне проекта.
+Для достижения > 85 по mobile:
+- WebP-изображения оптимизированы
+- Шрифт Inter загружается через preconnect
+- Скрипты и стили разделены по модулям
+- Адаптивные изображения через aspect-ratio
+- Минимум перерасчёта layout

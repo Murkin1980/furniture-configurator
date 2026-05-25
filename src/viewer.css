@@ -159,5 +159,12 @@
   .viewer-nav { width: 36px; height: 36px; font-size: 16px; }
   .viewer-nav-prev { left: 6px; }
   .viewer-nav-next { right: 6px; }
-  .viewer-dot { width: 8px; height: 8px; }
+  .viewer-dot { width: 8px; height: 8px; gap: 6px; }
+}
+
+@media (min-width: 768px) {
+  .viewer-image-wrap { border-radius: 12px; }
+  .viewer-nav { width: 44px; height: 44px; font-size: 22px; }
+  .viewer-dots { gap: 10px; padding: 16px 0; }
+  .viewer-dot { width: 12px; height: 12px; }
 }
