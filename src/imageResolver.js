@@ -1,5 +1,11 @@
 function imageResolver(config, angle) {
   const productId = config.product || 'sofa-classic';
+  const product = typeof getProduct === 'function' ? getProduct(productId) : null;
+
+  if (product?.exampleImage) {
+    return product.exampleImage;
+  }
+
   const material = config.material || 'fabric';
   const color = config.color || 'ivory';
   const legs = config.legs || 'wood';

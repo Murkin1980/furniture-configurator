@@ -5,6 +5,7 @@ const PRODUCTS = [
     sku: 'SOFA-CL-001',
     basePrice: 250000,
     currency: 'KZT',
+    exampleImage: 'products/sofa-classic/images/Gemini_Generated_Image_23eg9523eg9523eg.png',
     options: [
       {
         id: 'material',
