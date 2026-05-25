@@ -80,11 +80,25 @@ function getOptionValue(productId, optionId, valueId) {
 }
 
 function calcPrice(config) {
+  return calcPriceBreakdown(config).total;
+}
+
+function calcPriceBreakdown(config) {
   const product = getProduct(config.product);
-  let price = product.basePrice;
+  const items = [];
+  items.push({ label: 'Базовая цена', value: product.basePrice, modifier: 0, type: 'base' });
   for (const opt of product.options) {
     const val = getOptionValue(product.id, opt.id, config[opt.id]);
-    if (val) price += val.priceModifier;
+    if (val && val.priceModifier !== 0) {
+      items.push({ label: opt.name + ': ' + val.name, value: val.priceModifier, modifier: val.priceModifier, type: 'option' });
+    }
   }
-  return price;
+  const total = product.basePrice + items.filter((i) => i.type === 'option').reduce((s, i) => s + i.modifier, 0);
+  return { product, basePrice: product.basePrice, items, total };
+}
+
+function formatPrice(n, currency) {
+  const curr = currency || 'KZT';
+  const locales = { KZT: 'kk-KZ', RUB: 'ru-RU', USD: 'en-US' };
+  return new Intl.NumberFormat(locales[curr] || 'kk-KZ', { style: 'currency', currency: curr, maximumFractionDigits: 0 }).format(n);
 }

@@ -1,0 +1,80 @@
+.price-panel {
+  background: #fff;
+  border: 1px solid #eee;
+  border-radius: 10px;
+  padding: 16px 20px;
+  margin-top: 16px;
+}
+
+.price-total {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 12px;
+}
+
+.price-total-label {
+  font-size: 14px;
+  color: #888;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  font-weight: 500;
+}
+
+.price-total-value {
+  font-size: 28px;
+  font-weight: 700;
+  color: #111;
+  transition: transform 0.15s;
+}
+
+.price-total-value.flip {
+  animation: priceFlip 0.35s ease;
+}
+
+@keyframes priceFlip {
+  0% { transform: translateY(0); opacity: 1; }
+  40% { transform: translateY(-8px); opacity: 0.3; }
+  100% { transform: translateY(0); opacity: 1; }
+}
+
+.price-breakdown {
+  margin-top: 12px;
+  padding-top: 12px;
+  border-top: 1px solid #f0f0f0;
+}
+
+.price-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 4px 0;
+  font-size: 13px;
+}
+
+.price-row-base {
+  color: #888;
+}
+
+.price-row-option {
+  color: #555;
+}
+
+.price-row-option .price-val.plus { color: #2a7a2a; }
+.price-row-option .price-val.minus { color: #c0392b; }
+
+.price-row-total {
+  padding-top: 8px;
+  margin-top: 8px;
+  border-top: 2px solid #111;
+  font-weight: 600;
+  font-size: 15px;
+}
+
+.price-row-total .price-val {
+  font-size: 18px;
+}
+
+.price-val {
+  font-weight: 500;
+}

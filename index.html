@@ -6,6 +6,7 @@
   <title>Конфигуратор мебели</title>
   <link rel="stylesheet" href="src/viewer.css">
   <link rel="stylesheet" href="src/options.css">
+  <link rel="stylesheet" href="src/price.css">
   <style>
     * { box-sizing: border-box; margin: 0; padding: 0; }
     body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: #f5f5f5; color: #222; }
@@ -29,6 +30,7 @@
     <div class="angle-label" id="angleLabel">Вид спереди</div>
     <div id="options"></div>
     <div class="config-grid" id="configGrid"></div>
+    <div id="price"></div>
   </div>
   <script src="src/config.js"></script>
   <script src="src/schema.js"></script>
@@ -37,6 +39,7 @@
   <script src="src/demo-art.js"></script>
   <script src="src/viewer.js"></script>
   <script src="src/options.js"></script>
+  <script src="src/price.js"></script>
   <script>
     const product = getProduct();
     const defaultConfig = getDefaultConfig(product.id);
@@ -76,15 +79,6 @@
       viewer.setImages(urls);
     }
 
-    function updateSummary(config) {
-      const fields = { Материал: 'material', Цвет: 'color', Ножки: 'legs', Размер: 'size' };
-      let html = '';
-      for (const [label, key] of Object.entries(fields)) {
-        html += '<div><span class="label">' + label + ':</span> <span class="value">' + getValueLabel(key) + '</span></div>';
-      }
-      document.getElementById('configGrid').innerHTML = html;
-    }
-
     const viewer = new ViewerCore('#viewer', {
       animation: 'fade',
       onAngleChange: (angle) => {
@@ -93,6 +87,8 @@
       fallbackSVG,
     });
     viewer.setImages(imageUrls(currentConfig));
+
+    const priceDisplay = new PriceDisplay('#price');
 
     const optionsPanel = new OptionsPanel('#options', {
       product,
@@ -103,6 +99,17 @@
         updateViewer(config);
       }
     });
+
+    function updateSummary(config) {
+      const fields = { Материал: 'material', Цвет: 'color', Ножки: 'legs', Размер: 'size' };
+      let html = '';
+      for (const [label, key] of Object.entries(fields)) {
+        html += '<div><span class="label">' + label + ':</span> <span class="value">' + getValueLabel(key) + '</span></div>';
+      }
+      document.getElementById('configGrid').innerHTML = html;
+      priceDisplay.update(config);
+    }
+
     updateSummary(currentConfig);
   </script>
 </body>
