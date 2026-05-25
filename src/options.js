@@ -5,16 +5,28 @@ class OptionsPanel {
     this._config = options.config || getDefaultConfig(this._product.id);
     this._onChange = options.onChange || null;
 
+    this._sanitizeConfig();
     this._build();
-  }
-
-  get config() {
-    return { ...this._config };
   }
 
   setConfig(config) {
     this._config = { ...config };
+    this._sanitizeConfig();
     this._render();
+  }
+
+  _sanitizeConfig() {
+    for (const opt of this._product.options) {
+      const val = this._config[opt.id];
+      if (val && !this._isAvailable(opt.id, val)) {
+        const first = opt.values.find((v) => this._isAvailable(opt.id, v.id));
+        if (first) this._config[opt.id] = first.id;
+      }
+    }
+  }
+
+  get config() {
+    return { ...this._config };
   }
 
   destroy() {

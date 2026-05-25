@@ -20,6 +20,13 @@
     .config-grid div { background: #fff; border: 1px solid #eee; border-radius: 6px; padding: 10px 14px; font-size: 13px; }
     .config-grid .label { color: #888; }
     .config-grid .value { font-weight: 600; color: #222; }
+    .share-bar { display: flex; gap: 10px; margin-top: 16px; }
+    .share-btn { flex: 1; padding: 12px; border: none; border-radius: 8px; font-size: 14px; font-weight: 600; cursor: pointer; transition: opacity 0.2s; }
+    .share-btn:hover { opacity: 0.85; }
+    .share-btn-copy { background: #111; color: #fff; }
+    .share-btn-copy.copied { background: #1a7a1a; }
+    .toast { position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%) translateY(80px); background: #111; color: #fff; padding: 10px 24px; border-radius: 8px; font-size: 13px; opacity: 0; transition: transform 0.3s ease, opacity 0.3s ease; pointer-events: none; z-index: 100; }
+    .toast.show { transform: translateX(-50%) translateY(0); opacity: 1; }
   </style>
 </head>
 <body>
@@ -31,6 +38,10 @@
     <div id="options"></div>
     <div class="config-grid" id="configGrid"></div>
     <div id="price"></div>
+    <div class="share-bar">
+      <button class="share-btn share-btn-copy" id="copyLinkBtn" onclick="handleCopyLink()">Копировать ссылку</button>
+    </div>
+    <div class="toast" id="toast"></div>
   </div>
   <script src="src/config.js"></script>
   <script src="src/schema.js"></script>
@@ -43,7 +54,9 @@
   <script>
     const product = getProduct();
     const defaultConfig = getDefaultConfig(product.id);
-    let currentConfig = { ...defaultConfig };
+
+    const urlConfig = deserializeConfig(location.search, defaultConfig);
+    let currentConfig = { ...defaultConfig, ...urlConfig };
 
     function imageUrls(config) {
       return Array.from({ length: 8 }, (_, i) => imageResolver(config, i));
@@ -75,8 +88,14 @@
     }
 
     function updateViewer(config) {
-      const urls = imageUrls(config);
-      viewer.setImages(urls);
+      viewer.setImages(imageUrls(config));
+    }
+
+    function onConfigChange(config) {
+      currentConfig = config;
+      syncUrl(config);
+      updateSummary(config);
+      updateViewer(config);
     }
 
     const viewer = new ViewerCore('#viewer', {
@@ -93,11 +112,7 @@
     const optionsPanel = new OptionsPanel('#options', {
       product,
       config: currentConfig,
-      onChange: (config) => {
-        currentConfig = config;
-        updateSummary(config);
-        updateViewer(config);
-      }
+      onChange: onConfigChange,
     });
 
     function updateSummary(config) {
@@ -108,6 +123,22 @@
       }
       document.getElementById('configGrid').innerHTML = html;
       priceDisplay.update(config);
+    }
+
+    function handleCopyLink() {
+      const url = buildShareUrl(currentConfig);
+      copyShareLink(currentConfig);
+      const btn = document.getElementById('copyLinkBtn');
+      const toast = document.getElementById('toast');
+      btn.textContent = 'Скопировано!';
+      btn.classList.add('copied');
+      toast.textContent = 'Ссылка скопирована: ' + url;
+      toast.classList.add('show');
+      setTimeout(() => {
+        btn.textContent = 'Копировать ссылку';
+        btn.classList.remove('copied');
+        toast.classList.remove('show');
+      }, 2500);
     }
 
     updateSummary(currentConfig);

@@ -25,6 +25,12 @@ function buildShareUrl(config) {
   return `${base}?${qs}`;
 }
 
+function syncUrl(config) {
+  const qs = serializeConfig(config);
+  const url = qs ? `?${qs}` : window.location.pathname;
+  history.replaceState(null, '', url);
+}
+
 function copyShareLink(config) {
   const url = buildShareUrl(config);
   if (navigator.clipboard) {
