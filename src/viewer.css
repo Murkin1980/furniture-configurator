@@ -1,0 +1,124 @@
+.viewer {
+  position: relative;
+  width: 100%;
+  max-width: 880px;
+  margin: 0 auto;
+  overflow: hidden;
+  user-select: none;
+}
+
+.viewer-image-wrap {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 4 / 3;
+  overflow: hidden;
+  background: #f8f8f8;
+}
+
+.viewer-image-wrap img,
+.viewer-image-wrap svg {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+
+.viewer-slide {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.viewer-slide.enter {
+  animation: fadeIn 0.3s ease;
+}
+
+.viewer-slide.exit {
+  animation: fadeOut 0.3s ease;
+}
+
+.viewer-slide.slide-enter {
+  animation: slideIn 0.3s ease;
+}
+
+.viewer-slide.slide-exit {
+  animation: slideOut 0.3s ease;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+
+@keyframes fadeOut {
+  from { opacity: 1; }
+  to   { opacity: 0; }
+}
+
+@keyframes slideIn {
+  from { transform: translateX(60px); opacity: 0; }
+  to   { transform: translateX(0); opacity: 1; }
+}
+
+@keyframes slideOut {
+  from { transform: translateX(0); opacity: 1; }
+  to   { transform: translateX(-60px); opacity: 0; }
+}
+
+.viewer-nav {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  z-index: 2;
+  width: 40px;
+  height: 40px;
+  border: none;
+  border-radius: 50%;
+  background: rgba(255,255,255,0.9);
+  cursor: pointer;
+  font-size: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #333;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+  transition: background 0.2s;
+}
+
+.viewer-nav:hover { background: #fff; }
+
+.viewer-nav-prev { left: 12px; }
+
+.viewer-nav-next { right: 12px; }
+
+.viewer-dots {
+  display: flex;
+  justify-content: center;
+  gap: 8px;
+  padding: 12px 0;
+}
+
+.viewer-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  border: none;
+  background: #ccc;
+  cursor: pointer;
+  transition: background 0.2s, transform 0.2s;
+  padding: 0;
+}
+
+.viewer-dot.active {
+  background: #333;
+  transform: scale(1.3);
+}
+
+@media (max-width: 480px) {
+  .viewer-nav { width: 36px; height: 36px; font-size: 16px; }
+  .viewer-nav-prev { left: 6px; }
+  .viewer-nav-next { right: 6px; }
+  .viewer-dot { width: 8px; height: 8px; }
+}
