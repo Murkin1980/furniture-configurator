@@ -1,4 +1,4 @@
-const WA_NUMBER = '77027904001';
+const WA_NUMBER = '77059164337';
 
 function buildWhatsAppLink(config) {
   const product = getProduct(config.product);
