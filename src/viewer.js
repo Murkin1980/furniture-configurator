@@ -1,7 +1,7 @@
 class ViewerCore {
   constructor(container, options = {}) {
     this._container = typeof container === 'string' ? document.querySelector(container) : container;
-    this._options = Object.assign({ animation: 'fade', onAngleChange: null }, options);
+    this._options = Object.assign({ animation: 'fade', onAngleChange: null, fallbackSVG: null }, options);
     this._angle = 0;
     this._images = [];
     this._touchStartX = 0;
@@ -16,6 +16,7 @@ class ViewerCore {
   setImages(images) {
     this._images = images;
     this._render();
+    this._preloadAdjacent();
   }
 
   setAngle(angle, animate = true) {
@@ -57,20 +58,39 @@ class ViewerCore {
   }
 
   _render(animate = false) {
-    const img = this._images[this._angle];
+    const content = this._images[this._angle];
     const label = ANGLE_LABELS[this._angle];
 
     const prevSlide = this._els.slide;
     const newSlide = document.createElement('div');
     newSlide.className = 'viewer-slide';
-    newSlide.innerHTML = img || '<div style="padding:40px;color:#999">Нет изображения</div>';
+
+    if (typeof content === 'string' && content.startsWith('<')) {
+      newSlide.innerHTML = content;
+    } else if (typeof content === 'string') {
+      newSlide.innerHTML = '<div class="viewer-loader"><div class="viewer-spinner"></div></div>';
+      const img = new Image();
+      img.className = 'viewer-img';
+      img.alt = label;
+      img.draggable = false;
+      img.onload = () => {
+        newSlide.innerHTML = '';
+        newSlide.appendChild(img);
+      };
+      img.onerror = () => {
+        newSlide.innerHTML = this._options.fallbackSVG
+          ? this._options.fallbackSVG(this._angle)
+          : `<div class="viewer-placeholder"><span>${escapeHtml(label)}</span></div>`;
+      };
+      img.src = content;
+    } else {
+      newSlide.innerHTML = '<div class="viewer-placeholder"><span>Нет изображения</span></div>';
+    }
 
     if (animate) {
-      const direction = 1;
       newSlide.classList.add('slide-enter');
       prevSlide.classList.add('slide-exit');
       this._animating = true;
-
       const onEnd = () => {
         prevSlide.removeEventListener('animationend', onEnd);
         prevSlide.remove();
@@ -84,7 +104,6 @@ class ViewerCore {
     this._els.wrap.appendChild(newSlide);
     this._els.slide = newSlide;
     this._els.wrap.setAttribute('aria-label', label);
-
     this._renderDots();
   }
 
@@ -98,6 +117,21 @@ class ViewerCore {
       dot.addEventListener('click', () => this.setAngle(i, true));
       this._els.dots.appendChild(dot);
     }
+  }
+
+  _preloadAdjacent() {
+    const prev = ((this._angle - 1) + 8) % 8;
+    const next = (this._angle + 1) % 8;
+    [prev, next].forEach((i) => {
+      const src = this._images[i];
+      if (typeof src === 'string' && !src.startsWith('<') && src.startsWith('http')) {
+        const link = document.createElement('link');
+        link.rel = 'preload';
+        link.as = 'image';
+        link.href = src;
+        document.head.appendChild(link);
+      }
+    });
   }
 
   _bindEvents() {
@@ -141,3 +175,9 @@ const ANGLE_LABELS = [
   'Вид слева',
   'Передний левый угол',
 ];
+
+function escapeHtml(str) {
+  const d = document.createElement('div');
+  d.textContent = str;
+  return d.innerHTML;
+}

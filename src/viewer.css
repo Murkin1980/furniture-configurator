@@ -116,6 +116,45 @@
   transform: scale(1.3);
 }
 
+.viewer-img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+
+.viewer-loader {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  min-height: 200px;
+}
+
+.viewer-spinner {
+  width: 36px;
+  height: 36px;
+  border: 3px solid #eee;
+  border-top-color: #333;
+  border-radius: 50%;
+  animation: spin 0.7s linear infinite;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+.viewer-placeholder {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  min-height: 200px;
+  background: #f0f0f0;
+  color: #999;
+  font-size: 14px;
+}
+
 @media (max-width: 480px) {
   .viewer-nav { width: 36px; height: 36px; font-size: 16px; }
   .viewer-nav-prev { left: 6px; }

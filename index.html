@@ -15,6 +15,10 @@
     .angle-label { text-align: center; font-size: 13px; color: #888; margin-top: 4px; }
     .config-summary { margin-top: 16px; padding: 12px 16px; background: #fff; border-radius: 8px; border: 1px solid #eee; font-size: 13px; color: #666; }
     .config-summary strong { color: #333; }
+    .config-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 16px; }
+    .config-grid div { background: #fff; border: 1px solid #eee; border-radius: 6px; padding: 10px 14px; font-size: 13px; }
+    .config-grid .label { color: #888; }
+    .config-grid .value { font-weight: 600; color: #222; }
   </style>
 </head>
 <body>
@@ -24,7 +28,7 @@
     <div id="viewer"></div>
     <div class="angle-label" id="angleLabel">Вид спереди</div>
     <div id="options"></div>
-    <div class="config-summary" id="configSummary">Выбрано: ткань, айвори, деревянные ножки, двухместный</div>
+    <div class="config-grid" id="configGrid"></div>
   </div>
   <script src="src/config.js"></script>
   <script src="src/schema.js"></script>
@@ -36,14 +40,30 @@
   <script>
     const product = getProduct();
     const defaultConfig = getDefaultConfig(product.id);
-    const angles = Array.from({ length: 8 }, (_, i) => sofaSVG(i));
-    const viewer = new ViewerCore('#viewer', {
-      animation: 'fade',
-      onAngleChange: (angle) => {
-        document.getElementById('angleLabel').textContent = ANGLE_LABELS[angle];
-      }
-    });
-    viewer.setImages(angles);
+    let currentConfig = { ...defaultConfig };
+
+    function imageUrls(config) {
+      return Array.from({ length: 8 }, (_, i) => imageResolver(config, i));
+    }
+
+    function fallbackSVG(angle) {
+      const cfg = currentConfig;
+      const label = ANGLE_LABELS[angle];
+      const opts = [
+        getValueLabel('material'),
+        getValueLabel('color'),
+        getValueLabel('legs'),
+        getValueLabel('size'),
+      ].join(', ');
+      return `<svg viewBox="0 0 400 300" xmlns="http://www.w3.org/2000/svg">
+        <rect width="400" height="300" fill="#f0f0f0" rx="8"/>
+        <text x="200" y="80" text-anchor="middle" font-family="sans-serif" font-size="16" fill="#999">${escapeHtml(label)}</text>
+        <text x="200" y="120" text-anchor="middle" font-family="sans-serif" font-size="20" fill="#666" font-weight="600">Диван классический</text>
+        <text x="200" y="160" text-anchor="middle" font-family="sans-serif" font-size="14" fill="#888">${escapeHtml(opts)}</text>
+        <rect x="120" y="190" width="160" height="50" rx="6" fill="#ddd"/>
+        <text x="200" y="222" text-anchor="middle" font-family="sans-serif" font-size="13" fill="#999">WebP: ${escapeHtml(imageResolver(cfg, angle))}</text>
+      </svg>`;
+    }
 
     function getValueLabel(optionId) {
       const opt = product.options.find(o => o.id === optionId);
@@ -51,12 +71,28 @@
       return val ? val.name : optionId;
     }
 
-    function updateSummary(config) {
-      const parts = ['material', 'color', 'legs', 'size'].map(getValueLabel);
-      document.getElementById('configSummary').innerHTML = '<strong>Выбрано:</strong> ' + parts.join(', ');
+    function updateViewer(config) {
+      const urls = imageUrls(config);
+      viewer.setImages(urls);
     }
 
-    let currentConfig = { ...defaultConfig };
+    function updateSummary(config) {
+      const fields = { Материал: 'material', Цвет: 'color', Ножки: 'legs', Размер: 'size' };
+      let html = '';
+      for (const [label, key] of Object.entries(fields)) {
+        html += '<div><span class="label">' + label + ':</span> <span class="value">' + getValueLabel(key) + '</span></div>';
+      }
+      document.getElementById('configGrid').innerHTML = html;
+    }
+
+    const viewer = new ViewerCore('#viewer', {
+      animation: 'fade',
+      onAngleChange: (angle) => {
+        document.getElementById('angleLabel').textContent = ANGLE_LABELS[angle];
+      },
+      fallbackSVG,
+    });
+    viewer.setImages(imageUrls(currentConfig));
 
     const optionsPanel = new OptionsPanel('#options', {
       product,
@@ -64,8 +100,10 @@
       onChange: (config) => {
         currentConfig = config;
         updateSummary(config);
+        updateViewer(config);
       }
     });
+    updateSummary(currentConfig);
   </script>
 </body>
 </html>
