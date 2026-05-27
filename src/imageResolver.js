@@ -1,9 +1,14 @@
 function imageResolver(config, angle) {
   const productId = config.product || 'sofa-classic';
-  const p = getProduct(productId);
+  const product = typeof getProduct === 'function' ? getProduct(productId) : null;
+
+  if (product?.exampleImage) {
+    return product.exampleImage;
+  }
+
   const params = [String(angle)];
 
-  if (p.type === 'parametric') {
+  if (product?.type === 'parametric') {
     params.push(config.material || 'ldsp_white');
     params.push(config.facade || 'ldsp');
     params.push(config.width || 1200);
