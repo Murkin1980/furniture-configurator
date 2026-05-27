@@ -1,11 +1,22 @@
 function imageResolver(config, angle) {
   const productId = config.product || 'sofa-classic';
-  const material = config.material || 'fabric';
-  const color = config.color || 'ivory';
-  const legs = config.legs || 'wood';
-  const size = config.size || '2seat';
+  const p = getProduct(productId);
+  const params = [String(angle)];
 
-  const fileName = `${angle}-${material}-${color}-${legs}-${size}.webp`;
+  if (p.type === 'parametric') {
+    params.push(config.material || 'ldsp_white');
+    params.push(config.facade || 'ldsp');
+    params.push(config.width || 1200);
+    params.push(config.height || 2400);
+    params.push(config.depth || 600);
+  } else {
+    params.push(config.material || 'fabric');
+    params.push(config.color || 'ivory');
+    params.push(config.legs || 'wood');
+    params.push(config.size || '2seat');
+  }
+
+  const fileName = params.join('-') + '.webp';
   return `products/${productId}/images/${fileName}`;
 }
 

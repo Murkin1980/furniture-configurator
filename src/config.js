@@ -3,6 +3,7 @@ const PRODUCTS = [
     id: 'sofa-classic',
     name: 'Диван классический',
     sku: 'SOFA-CL-001',
+    type: 'simple',
     basePrice: 250000,
     currency: 'KZT',
     options: [
@@ -54,6 +55,67 @@ const PRODUCTS = [
       },
     ],
   },
+  {
+    id: 'wardrobe',
+    name: 'Шкаф-купе распашной',
+    sku: 'WARD-001',
+    type: 'parametric',
+    currency: 'KZT',
+    paramGroup: 'wardrobe',
+    options: [
+      {
+        id: 'material',
+        name: 'Материал корпуса',
+        type: 'text',
+        values: [
+          { id: 'ldsp_white', name: 'ЛДСП белый' },
+          { id: 'ldsp_oak', name: 'ЛДСП дуб' },
+          { id: 'ldsp_wenge', name: 'ЛДСП венге' },
+          { id: 'mdf_white', name: 'МДФ белый матовый' },
+          { id: 'mdf_gloss', name: 'МДФ глянец' },
+        ],
+      },
+      {
+        id: 'facade',
+        name: 'Материал фасадов',
+        type: 'text',
+        values: [
+          { id: 'ldsp', name: 'ЛДСП' },
+          { id: 'mdf', name: 'МДФ матовый' },
+          { id: 'mdf_gloss', name: 'МДФ глянец' },
+          { id: 'glass', name: 'Стекло' },
+        ],
+      },
+      {
+        id: 'sections',
+        name: 'Секции',
+        type: 'counter',
+        min: 1, max: 6, default: 2,
+      },
+      {
+        id: 'shelves',
+        name: 'Полки',
+        type: 'counter',
+        min: 0, max: 20, default: 3,
+      },
+      {
+        id: 'drawers',
+        name: 'Ящики',
+        type: 'counter',
+        min: 0, max: 8, default: 1,
+      },
+      {
+        id: 'fittings',
+        name: 'Фурнитура',
+        type: 'multicheck',
+        values: [
+          { id: 'soft_close', name: 'Доводчики на двери' },
+          { id: 'lighting', name: 'Встроенная подсветка' },
+          { id: 'full_extension', name: 'Направляющие полного выдвижения' },
+        ],
+      },
+    ],
+  },
 ];
 
 function getProduct(id) {
@@ -63,6 +125,11 @@ function getProduct(id) {
 function getDefaultConfig(productId) {
   const product = getProduct(productId);
   const config = { product: product.id };
+  if (product.type === 'parametric') {
+    const pcfg = getParametricDefaultConfig(product.paramGroup);
+    Object.assign(config, pcfg);
+    return config;
+  }
   for (const opt of product.options) {
     config[opt.id] = opt.values[0].id;
   }
@@ -85,6 +152,12 @@ function calcPrice(config) {
 
 function calcPriceBreakdown(config) {
   const product = getProduct(config.product);
+  if (product.type === 'parametric') {
+    const result = calcParametricPrice(product.paramGroup, config);
+    if (result) {
+      return { product, basePrice: 0, items: result.items, total: result.total };
+    }
+  }
   const items = [];
   items.push({ label: 'Базовая цена', value: product.basePrice, modifier: 0, type: 'base' });
   for (const opt of product.options) {

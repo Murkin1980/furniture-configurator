@@ -36,6 +36,9 @@ class PriceDisplay {
           if (item.type === 'base') {
             return `<div class="price-row price-row-base"><span>${escapeHtml(item.label)}</span><span class="price-val">${formatPrice(item.value, currency)}</span></div>`;
           }
+          if (item.type === 'formula') {
+            return `<div class="price-row price-row-formula"><span>${escapeHtml(item.label)}</span><span class="price-val">${formatPrice(item.value, currency)}</span></div>`;
+          }
           const cls = item.modifier > 0 ? 'plus' : 'minus';
           const sign = item.modifier > 0 ? '+ ' : '− ';
           return `<div class="price-row price-row-option"><span>${escapeHtml(item.label)}</span><span class="price-val ${cls}">${sign}${formatPrice(Math.abs(item.modifier), currency)}</span></div>`;

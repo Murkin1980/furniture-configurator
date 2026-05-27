@@ -1,12 +1,14 @@
 const ProductSchema = {
   type: 'object',
-  required: ['id', 'name', 'sku', 'basePrice', 'currency', 'options'],
+  required: ['id', 'name', 'sku', 'currency', 'options'],
   properties: {
     id: { type: 'string', description: 'Уникальный идентификатор товара (slug)' },
     name: { type: 'string', description: 'Название товара для отображения' },
     sku: { type: 'string', description: 'Артикул товара' },
-    basePrice: { type: 'number', description: 'Базовая цена в минимальной комплектации' },
+    type: { type: 'string', enum: ['simple', 'parametric'], description: 'Тип расчёта цены' },
+    basePrice: { type: 'number', description: 'Базовая цена (только для simple)' },
     currency: { type: 'string', enum: ['KZT', 'RUB', 'USD'], description: 'Валюта' },
+    paramGroup: { type: 'string', description: 'Группа правил для parametric (ключ в PRICING_RULES)' },
     options: {
       type: 'array',
       description: 'Группы опций для конфигурации',
@@ -16,7 +18,10 @@ const ProductSchema = {
         properties: {
           id: { type: 'string', description: 'Уникальный ID группы опций' },
           name: { type: 'string', description: 'Название группы (Материал, Цвет, ...)' },
-          type: { type: 'string', enum: ['text', 'color'], description: 'Тип отображения: text — кнопка, color — цветовой свотч' },
+          type: { type: 'string', enum: ['text', 'color', 'counter', 'multicheck'], description: 'Тип отображения' },
+          min: { type: 'number', description: 'Минимум (для counter)' },
+          max: { type: 'number', description: 'Максимум (для counter)' },
+          default: { type: 'number', description: 'Значение по умолчанию (для counter)' },
           dependsOn: {
             type: 'object',
             description: 'Связь с другой опцией (цвет зависит от материала)',
@@ -30,7 +35,7 @@ const ProductSchema = {
             description: 'Доступные значения опции',
             items: {
               type: 'object',
-              required: ['id', 'name', 'priceModifier', 'imageSuffix'],
+              required: ['id', 'name'],
               properties: {
                 id: { type: 'string', description: 'Уникальный ID значения' },
                 name: { type: 'string', description: 'Название для отображения' },
@@ -52,22 +57,27 @@ function validateProduct(product) {
   if (!product.id) errors.push('product.id is required');
   if (!product.name) errors.push('product.name is required');
   if (!product.sku) errors.push('product.sku is required');
-  if (typeof product.basePrice !== 'number') errors.push('product.basePrice must be a number');
+  if (product.type === 'simple' && typeof product.basePrice !== 'number') {
+    errors.push('simple product basePrice must be a number');
+  }
   if (!Array.isArray(product.options) || product.options.length === 0) {
     errors.push('product.options must be a non-empty array');
   } else {
     for (const opt of product.options) {
       if (!opt.id) errors.push(`option missing id`);
       if (!opt.name) errors.push(`option "${opt.id}" missing name`);
-      if (!['text', 'color'].includes(opt.type)) errors.push(`option "${opt.id}" type must be text or color`);
+      if (!['text', 'color', 'counter', 'multicheck'].includes(opt.type)) {
+        errors.push(`option "${opt.id}" type must be text, color, counter, or multicheck`);
+      }
+      if (opt.type === 'counter' && typeof opt.min !== 'number') {
+        errors.push(`counter option "${opt.id}" must have min`);
+      }
       if (!Array.isArray(opt.values) || opt.values.length === 0) {
         errors.push(`option "${opt.id}" must have at least one value`);
       } else {
         for (const val of opt.values) {
           if (!val.id) errors.push(`option "${opt.id}" value missing id`);
           if (!val.name) errors.push(`option "${opt.id}" value "${val.id}" missing name`);
-          if (typeof val.priceModifier !== 'number') errors.push(`option "${opt.id}" value "${val.id}" priceModifier must be a number`);
-          if (!val.imageSuffix) errors.push(`option "${opt.id}" value "${val.id}" missing imageSuffix`);
         }
       }
     }

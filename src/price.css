@@ -60,6 +60,10 @@
   color: #555;
 }
 
+.price-row-formula {
+  color: #555;
+}
+
 .price-row-option .price-val.plus { color: #2a7a2a; }
 .price-row-option .price-val.minus { color: #c0392b; }
 

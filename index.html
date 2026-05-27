@@ -21,6 +21,10 @@
     .app-header { margin-bottom: 20px; }
     .app-header h1 { font-size: 24px; font-weight: 700; letter-spacing: -0.02em; }
     .app-header p { color: #888; font-size: 14px; margin-top: 2px; }
+    .product-switcher { display: flex; gap: 8px; margin-top: 12px; }
+    .product-btn { padding: 8px 20px; border: 2px solid #ddd; border-radius: 8px; background: #fff; font-size: 14px; font-weight: 500; cursor: pointer; transition: border-color 0.2s, background 0.2s, color 0.2s; }
+    .product-btn:hover { border-color: #999; }
+    .product-btn.active { border-color: #111; background: #111; color: #fff; }
     .angle-label { text-align: center; font-size: 13px; color: #888; margin-top: 6px; }
     .config-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 16px; }
     .config-grid div { background: #fff; border: 1px solid #eee; border-radius: 8px; padding: 10px 14px; font-size: 13px; }
@@ -52,6 +56,10 @@
     <div class="app-header">
       <h1>Конфигуратор мебели</h1>
       <p>Выберите опции и настройте товар под себя</p>
+      <div class="product-switcher">
+        <button class="product-btn" data-id="sofa-classic" onclick="switchToProduct('sofa-classic')">Диван</button>
+        <button class="product-btn" data-id="wardrobe" onclick="switchToProduct('wardrobe')">Шкаф-купе</button>
+      </div>
     </div>
     <div id="viewer"></div>
     <div class="angle-label" id="angleLabel">Вид спереди</div>
@@ -68,6 +76,7 @@
     <div class="toast" id="toast"></div>
   </div>
   <script src="src/config.js"></script>
+  <script src="src/pricing.js"></script>
   <script src="src/schema.js"></script>
   <script src="src/urlSerializer.js"></script>
   <script src="src/imageResolver.js"></script>
@@ -77,11 +86,45 @@
   <script src="src/price.js"></script>
   <script src="src/whatsapp.js"></script>
   <script>
-    const product = getProduct();
-    const defaultConfig = getDefaultConfig(product.id);
+    let activeProductId = new URLSearchParams(location.search).get('product') || 'sofa-classic';
 
+    function switchProduct(productId) {
+      activeProductId = productId;
+      const product = getProduct(productId);
+      const defaultConfig = getDefaultConfig(productId);
+      const urlConfig = deserializeConfig(location.search, defaultConfig);
+      let config = { ...defaultConfig, ...urlConfig };
+      config.product = productId;
+      applyConfig(config);
+    }
+
+    function getProductName() {
+      return getProduct(activeProductId).name;
+    }
+
+    function applyConfig(config) {
+      const product = getProduct(config.product);
+      syncUrl(config);
+      currentConfig = config;
+      optionsPanel.destroy();
+      optionsPanel = new OptionsPanel('#options', {
+        product,
+        config,
+        onChange: onConfigChange,
+      });
+      document.querySelectorAll('.product-btn').forEach(btn => {
+        btn.classList.toggle('active', btn.dataset.id === config.product);
+      });
+      document.querySelector('.app-header h1').textContent = product.name;
+      updateViewer(config);
+      updateSummary(config);
+    }
+
+    const product = getProduct(activeProductId);
+    const defaultConfig = getDefaultConfig(activeProductId);
     const urlConfig = deserializeConfig(location.search, defaultConfig);
     let currentConfig = { ...defaultConfig, ...urlConfig };
+    currentConfig.product = activeProductId;
 
     function imageUrls(config) {
       return Array.from({ length: 8 }, (_, i) => imageResolver(config, i));
@@ -89,17 +132,26 @@
 
     function fallbackSVG(angle) {
       const cfg = currentConfig;
+      const productName = getProductName();
       const label = ANGLE_LABELS[angle];
-      const opts = [
-        getValueLabel('material'),
-        getValueLabel('color'),
-        getValueLabel('legs'),
-        getValueLabel('size'),
-      ].join(', ');
+      const detailLabels = [];
+      const p = getProduct(cfg.product);
+      if (p.type === 'parametric') {
+        detailLabels.push(cfg.width + '×' + cfg.height + '×' + cfg.depth + ' мм');
+        const matLabel = getValueLabel('material') || cfg.material;
+        detailLabels.push(matLabel);
+      } else {
+        const keys = ['material', 'color', 'legs', 'size'];
+        for (const k of keys) {
+          const v = getValueLabel(k);
+          if (v) detailLabels.push(v);
+        }
+      }
+      const opts = detailLabels.join(', ');
       return `<svg viewBox="0 0 400 300" xmlns="http://www.w3.org/2000/svg">
         <rect width="400" height="300" fill="#f0f0f0" rx="8"/>
         <text x="200" y="80" text-anchor="middle" font-family="sans-serif" font-size="16" fill="#999">${escapeHtml(label)}</text>
-        <text x="200" y="120" text-anchor="middle" font-family="sans-serif" font-size="20" fill="#666" font-weight="600">Диван классический</text>
+        <text x="200" y="120" text-anchor="middle" font-family="sans-serif" font-size="20" fill="#666" font-weight="600">${escapeHtml(productName)}</text>
         <text x="200" y="160" text-anchor="middle" font-family="sans-serif" font-size="14" fill="#888">${escapeHtml(opts)}</text>
         <rect x="120" y="190" width="160" height="50" rx="6" fill="#ddd"/>
         <text x="200" y="222" text-anchor="middle" font-family="sans-serif" font-size="13" fill="#999">WebP: ${escapeHtml(imageResolver(cfg, angle))}</text>
@@ -107,9 +159,11 @@
     }
 
     function getValueLabel(optionId) {
-      const opt = product.options.find(o => o.id === optionId);
+      const p = getProduct(currentConfig.product);
+      const opt = p.options.find(o => o.id === optionId);
+      if (!opt) return null;
       const val = opt.values.find(v => v.id === currentConfig[optionId]);
-      return val ? val.name : optionId;
+      return val ? val.name : null;
     }
 
     function updateViewer(config) {
@@ -134,17 +188,31 @@
 
     const priceDisplay = new PriceDisplay('#price');
 
-    const optionsPanel = new OptionsPanel('#options', {
+    let optionsPanel = new OptionsPanel('#options', {
       product,
       config: currentConfig,
       onChange: onConfigChange,
     });
 
     function updateSummary(config) {
-      const fields = { Материал: 'material', Цвет: 'color', Ножки: 'legs', Размер: 'size' };
+      const p = getProduct(config.product);
       let html = '';
-      for (const [label, key] of Object.entries(fields)) {
-        html += '<div><span class="label">' + label + ':</span> <span class="value">' + getValueLabel(key) + '</span></div>';
+      if (p.type === 'parametric') {
+        html += '<div><span class="label">Товар:</span> <span class="value">' + p.name + '</span></div>';
+        html += '<div><span class="label">Габариты:</span> <span class="value">' + config.width + '×' + config.height + '×' + config.depth + ' мм</span></div>';
+        html += '<div><span class="label">Материал:</span> <span class="value">' + (getValueLabel('material') || config.material) + '</span></div>';
+        html += '<div><span class="label">Фасады:</span> <span class="value">' + (getValueLabel('facade') || config.facade) + '</span></div>';
+        html += '<div><span class="label">Секции/Полки/Ящики:</span> <span class="value">' + config.sections + '/' + config.shelves + '/' + config.drawers + '</span></div>';
+        if (config.fittings && config.fittings.length > 0) {
+          html += '<div><span class="label">Фурнитура:</span> <span class="value">' + config.fittings.length + ' шт.</span></div>';
+        }
+      } else {
+        html += '<div><span class="label">Товар:</span> <span class="value">' + p.name + '</span></div>';
+        const fields = { Материал: 'material', Цвет: 'color', Ножки: 'legs', Размер: 'size' };
+        for (const [label, key] of Object.entries(fields)) {
+          const val = getValueLabel(key);
+          if (val) html += '<div><span class="label">' + label + ':</span> <span class="value">' + val + '</span></div>';
+        }
       }
       document.getElementById('configGrid').innerHTML = html;
       priceDisplay.update(config);
@@ -165,6 +233,19 @@
         toast.classList.remove('show');
       }, 2500);
     }
+
+    function switchToProduct(id) {
+      const params = new URLSearchParams(location.search);
+      params.set('product', id);
+      const newUrl = '?' + params.toString();
+      history.replaceState(null, '', newUrl);
+      switchProduct(id);
+    }
+
+    document.querySelectorAll('.product-btn').forEach(btn => {
+      btn.classList.toggle('active', btn.dataset.id === activeProductId);
+    });
+    document.querySelector('.app-header h1').textContent = product.name;
 
     updateSummary(currentConfig);
   </script>

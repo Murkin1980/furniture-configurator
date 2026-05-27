@@ -18,6 +18,10 @@ class OptionsPanel {
   _sanitizeConfig() {
     for (const opt of this._product.options) {
       const val = this._config[opt.id];
+      if (opt.type === 'multicheck') {
+        if (!Array.isArray(val)) this._config[opt.id] = [];
+        continue;
+      }
       if (val && !this._isAvailable(opt.id, val)) {
         const first = opt.values.find((v) => this._isAvailable(opt.id, v.id));
         if (first) this._config[opt.id] = first.id;
@@ -43,10 +47,82 @@ class OptionsPanel {
   _render() {
     this._root.innerHTML = '';
 
+    if (this._product.type === 'parametric') {
+      const dims = this._renderDimensions();
+      this._root.appendChild(dims);
+    }
+
     for (const opt of this._product.options) {
       const group = this._renderGroup(opt);
       this._root.appendChild(group);
     }
+  }
+
+  _renderDimensions() {
+    const constraints = getDimensionConstraints(this._product.paramGroup);
+    if (!constraints) return document.createDocumentFragment();
+
+    const section = document.createElement('div');
+    section.className = 'dims-section';
+
+    const label = document.createElement('div');
+    label.className = 'option-group-label';
+    label.textContent = 'Габариты (мм)';
+    section.appendChild(label);
+
+    const grid = document.createElement('div');
+    grid.className = 'dims-grid';
+
+    for (const [key, dim] of Object.entries(constraints)) {
+      const wrap = document.createElement('div');
+      wrap.className = 'dim-control';
+
+      const dimLabel = document.createElement('label');
+      dimLabel.className = 'dim-label';
+      dimLabel.textContent = dim.label;
+      wrap.appendChild(dimLabel);
+
+      const row = document.createElement('div');
+      row.className = 'dim-row';
+
+      const slider = document.createElement('input');
+      slider.type = 'range';
+      slider.min = dim.min;
+      slider.max = dim.max;
+      slider.step = dim.step;
+      slider.value = this._config[key] ?? dim.default;
+      slider.className = 'dim-slider';
+      slider.addEventListener('input', () => {
+        this._config[key] = parseInt(slider.value, 10);
+        numInput.value = slider.value;
+        this._onChange({ ...this._config });
+      });
+
+      const numInput = document.createElement('input');
+      numInput.type = 'number';
+      numInput.min = dim.min;
+      numInput.max = dim.max;
+      numInput.step = dim.step;
+      numInput.value = slider.value;
+      numInput.className = 'dim-number';
+      numInput.addEventListener('change', () => {
+        let v = parseInt(numInput.value, 10);
+        if (isNaN(v)) v = dim.default;
+        v = Math.max(dim.min, Math.min(dim.max, v));
+        numInput.value = v;
+        slider.value = v;
+        this._config[key] = v;
+        this._onChange({ ...this._config });
+      });
+
+      row.appendChild(slider);
+      row.appendChild(numInput);
+      wrap.appendChild(row);
+      grid.appendChild(wrap);
+    }
+
+    section.appendChild(grid);
+    return section;
   }
 
   _renderGroup(opt) {
@@ -58,28 +134,104 @@ class OptionsPanel {
     label.textContent = opt.name;
     group.appendChild(label);
 
-    const scrollWrap = document.createElement('div');
-    scrollWrap.className = 'options-scroll-wrap';
+    if (opt.type === 'counter') {
+      group.appendChild(this._renderCounter(opt));
+    } else if (opt.type === 'multicheck') {
+      group.appendChild(this._renderMultiCheck(opt));
+    } else {
+      const scrollWrap = document.createElement('div');
+      scrollWrap.className = 'options-scroll-wrap';
 
-    const valuesWrap = document.createElement('div');
-    valuesWrap.className = 'option-group-values';
+      const valuesWrap = document.createElement('div');
+      valuesWrap.className = 'option-group-values';
 
-    const selectedVal = this._config[opt.id];
+      const selectedVal = this._config[opt.id];
 
-    for (const val of opt.values) {
-      const disabled = !this._isAvailable(opt.id, val.id);
-      const selected = selectedVal === val.id;
+      for (const val of opt.values) {
+        const disabled = !this._isAvailable(opt.id, val.id);
+        const selected = selectedVal === val.id;
 
-      if (opt.type === 'color') {
-        valuesWrap.appendChild(this._buildSwatch(val, selected, disabled, opt));
-      } else {
-        valuesWrap.appendChild(this._buildButton(val, selected, disabled, opt));
+        if (opt.type === 'color') {
+          valuesWrap.appendChild(this._buildSwatch(val, selected, disabled, opt));
+        } else {
+          valuesWrap.appendChild(this._buildButton(val, selected, disabled, opt));
+        }
       }
+
+      scrollWrap.appendChild(valuesWrap);
+      group.appendChild(scrollWrap);
     }
 
-    scrollWrap.appendChild(valuesWrap);
-    group.appendChild(scrollWrap);
     return group;
+  }
+
+  _renderCounter(opt) {
+    const wrap = document.createElement('div');
+    wrap.className = 'counter-control';
+
+    const btnMinus = document.createElement('button');
+    btnMinus.className = 'counter-btn';
+    btnMinus.textContent = '−';
+    btnMinus.addEventListener('click', () => this._adjustCounter(opt, -1));
+
+    const value = document.createElement('span');
+    value.className = 'counter-value';
+    value.textContent = this._config[opt.id] ?? opt.default ?? 0;
+
+    const btnPlus = document.createElement('button');
+    btnPlus.className = 'counter-btn';
+    btnPlus.textContent = '+';
+    btnPlus.addEventListener('click', () => this._adjustCounter(opt, 1));
+
+    wrap.appendChild(btnMinus);
+    wrap.appendChild(value);
+    wrap.appendChild(btnPlus);
+    return wrap;
+  }
+
+  _adjustCounter(opt, delta) {
+    const cur = this._config[opt.id] ?? opt.default ?? 0;
+    const next = Math.max(opt.min ?? 0, Math.min(opt.max ?? 99, cur + delta));
+    this._config[opt.id] = next;
+    this._render();
+    if (this._onChange) this._onChange({ ...this._config });
+  }
+
+  _renderMultiCheck(opt) {
+    const wrap = document.createElement('div');
+    wrap.className = 'multicheck-wrap';
+
+    const selected = this._config[opt.id] || [];
+
+    for (const val of opt.values) {
+      const isChecked = selected.includes(val.id);
+      const chk = document.createElement('label');
+      chk.className = 'multicheck-item' + (isChecked ? ' checked' : '');
+
+      const cb = document.createElement('input');
+      cb.type = 'checkbox';
+      cb.checked = isChecked;
+      cb.addEventListener('change', () => {
+        const arr = [...(this._config[opt.id] || [])];
+        if (cb.checked) {
+          if (!arr.includes(val.id)) arr.push(val.id);
+        } else {
+          this._config[opt.id] = arr.filter((v) => v !== val.id);
+        }
+        this._config[opt.id] = arr;
+        this._render();
+        if (this._onChange) this._onChange({ ...this._config });
+      });
+
+      const name = document.createElement('span');
+      name.textContent = val.name;
+
+      chk.appendChild(cb);
+      chk.appendChild(name);
+      wrap.appendChild(chk);
+    }
+
+    return wrap;
   }
 
   _buildButton(val, selected, disabled, opt) {
