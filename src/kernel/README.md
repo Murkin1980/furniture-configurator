@@ -33,7 +33,8 @@ src/kernel/
   bom/        parts -> BOM -> cutting summary (lower-bound sheet estimate only)
   validation/ codes (OVERLAP, OUT_OF_WALL, CANNOT_PLACE, CORNER_CONFLICT, RUN_GAP,
               OPENING_BLOCKED, UNKNOWN_WALL)
-  model/      canonical model + buildProject/update*; runs.js = canonical runs normalisation
+  model/      canonical model + buildProject/update*; runs.js = canonical runs normalisation;
+              editor.js = CP-04 applyAction dispatcher over the placement API
   view/       planSvg.js (plan), isoSvg.js (isometric wireframe), scene3d.js (3D scene data,
               CP-03; renderer-free) + vendor/three.module.min.js (r160, for kernel-3d.html only)
   tools/      serve.js (static server), render-evidence.js (artifact generator)
@@ -108,10 +109,17 @@ with NO renderer import; kernel-3d.html renders that data with a vendored Three.
 view is derived and read-only - plan, iso and 3D all read the same part boxes, so there is still no
 second source of dimensions.
 
+## Editing (CP-04)
+
+model/editor.js exposes `applyAction(definition, action)` / `applyActions()`: add, remove, resize,
+resizeWall, move (between runs), reorder - each dispatched through the CP-02 placement API and CP-01
+update*. The debug preview's edit panel calls only applyAction; invalid actions throw descriptive
+errors that the panel surfaces. The UI never computes placement.
+
 ## Run it
 
 ```
-npm test                                   # node:test, 91 tests, zero deps
+npm test                                   # node:test, 100 tests, zero deps
 node src/kernel/tools/serve.js 8080        # static server
 # open http://127.0.0.1:8080/kernel-preview.html   (debug preview)
 # open http://127.0.0.1:8080/kernel-3d.html        (derived 3D view, CP-03)

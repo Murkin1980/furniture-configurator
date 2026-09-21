@@ -91,3 +91,14 @@ A read-only 3D renderer was attached without touching the one-way flow:
 - 3D adds no interaction: placement/editing in 3D and export pipelines stay out of scope.
 - Verified by `src/kernel/tests/cp03-scene3d.test.js` (part/box parity with the BOM, footprint
   consistency, 3D corner disjointness, room-envelope containment, determinism).
+
+## CP-04 addendum (interactive editing on the placement API)
+
+Editing proves the CP-02 API is UI-sufficient without giving the UI any placement logic:
+
+- `model/editor.js` `applyAction(definition, action)` dispatches add/remove/resize/resizeWall/
+  move/reorder through `placeModule/removeModule/reorderModule/moveModule/updateModule/updateWall`.
+  It returns the next canonical definition; everything else is re-derived by buildProject().
+- Invalid edits throw the API's descriptive errors; the preview panel surfaces them verbatim.
+- `applyActions()` gives deterministic replay (basis for future undo/redo, which stays out of scope).
+- Verified by `src/kernel/tests/cp04-editor.test.js` (100 tests total, all green).
