@@ -6,6 +6,9 @@
       .m.hi{fill:#f59e0b;fill-opacity:.45;stroke:#b45309;stroke-width:3}
       .m.err{fill:#f87171;fill-opacity:.5;stroke:#b91c1c;stroke-width:3}
       .res{fill:#ef4444;fill-opacity:.12;stroke:#dc2626;stroke-width:2;stroke-dasharray:6 4}
+      .run{stroke:#059669;stroke-width:3;fill:none}
+      .runh{fill:#059669}
+      .runlbl{font:600 22px ui-monospace,monospace;fill:#047857}
       .lbl{font:600 26px ui-monospace,monospace;fill:#111827}
       .dim{font:500 24px ui-monospace,monospace;fill:#6b7280}
       .cor{fill:#dc2626}
@@ -33,8 +36,8 @@
 <line class="g" x1="120" y1="620" x2="2620" y2="620"/>
 <line class="g" x1="120" y1="370" x2="2620" y2="370"/>
 <line class="g" x1="120" y1="120" x2="2620" y2="120"/>
-<line class="op" x1="2220" y1="1120" x2="1320" y2="1120"/>
-<line class="op" x1="920" y1="120" x2="120" y2="120"/>
+<line class="op" data-opening="window-1" x1="2220" y1="1120" x2="1320" y2="1120"/>
+<line class="op" data-opening="door-1" x1="920" y1="120" x2="120" y2="120"/>
 <line class="w" x1="120" y1="2620" x2="2620" y2="2620"/>
 <line class="w" x1="2620" y1="2620" x2="2620" y2="1120"/>
 <line class="w" x1="2620" y1="1120" x2="1120" y2="1120"/>
@@ -44,12 +47,18 @@
 <polygon class="res" points="2620,2620 2620,2060 2060,2060 2060,2620"><title>corner reservation wall-b</title></polygon>
 <polygon class="res" points="2620,1120 2060,1120 2060,1680 2620,1680"><title>corner reservation wall-c</title></polygon>
 <polygon class="res" points="120,2060 120,2620 680,2620 680,2060"><title>corner reservation wall-f</title></polygon>
-<polygon class="m" points="120,2620 720,2620 720,2060 120,2060"><title>a1 600 mm</title></polygon>
-<polygon class="m" points="720,2620 1320,2620 1320,2060 720,2060"><title>a2 600 mm</title></polygon>
-<polygon class="m" points="1320,2620 1920,2620 1920,2060 1320,2060"><title>a3 600 mm</title></polygon>
-<polygon class="m" points="1920,2620 2620,2620 2620,2060 1920,2060"><title>a4 700 mm</title></polygon>
-<polygon class="m" points="2620,2060 2620,1590 2060,1590 2060,2060"><title>b1 470 mm</title></polygon>
-<polygon class="m" points="2620,1590 2620,1120 2060,1120 2060,1590"><title>b2 470 mm</title></polygon>
+<line class="run" x1="160" y1="1940" x2="380" y2="1940"/>
+<polygon class="runh" points="380,1940 335,1914 335,1966"/>
+<text class="runlbl" x="270" y="1860" text-anchor="middle">run wall-a · start · 4</text>
+<line class="run" x1="1940" y1="2580" x2="1940" y2="2360"/>
+<polygon class="runh" points="1940,2360 1914,2405 1966,2405"/>
+<text class="runlbl" x="1860" y="2470" text-anchor="middle">run wall-b · start · 2</text>
+<polygon class="m" data-module="a1" points="120,2620 720,2620 720,2060 120,2060"><title>a1 600 mm</title></polygon>
+<polygon class="m" data-module="a2" points="720,2620 1320,2620 1320,2060 720,2060"><title>a2 600 mm</title></polygon>
+<polygon class="m" data-module="a3" points="1320,2620 1920,2620 1920,2060 1320,2060"><title>a3 600 mm</title></polygon>
+<polygon class="m" data-module="a4" points="1920,2620 2620,2620 2620,2060 1920,2060"><title>a4 700 mm</title></polygon>
+<polygon class="m" data-module="b1" points="2620,2060 2620,1590 2060,1590 2060,2060"><title>b1 470 mm</title></polygon>
+<polygon class="m" data-module="b2" points="2620,1590 2620,1120 2060,1120 2060,1590"><title>b2 470 mm</title></polygon>
 <text class="dim" x="1370" y="2710" text-anchor="middle">wall-a 2500 @ 0°</text>
 <text class="dim" x="2710" y="1870" text-anchor="middle">wall-b 1500 @ 90°</text>
 <text class="dim" x="1870" y="1030" text-anchor="middle">wall-c 1500 @ 180°</text>
@@ -62,16 +71,16 @@
 <text class="lbl" x="2270" y="2340" text-anchor="middle">a4<tspan class="dim" x="2270" dy="28">700</tspan></text>
 <text class="lbl" x="2340" y="1825" text-anchor="middle">b1<tspan class="dim" x="2340" dy="28">470</tspan></text>
 <text class="lbl" x="2340" y="1355" text-anchor="middle">b2<tspan class="dim" x="2340" dy="28">470</tspan></text>
-<circle class="cor" cx="2620" cy="2620" r="9"/>
+<circle class="cor" data-corner="0" cx="2620" cy="2620" r="9"/>
 <text class="dim" x="2513.93" y="2513.93" text-anchor="middle">90° · a4</text>
-<circle class="cor" cx="2620" cy="1120" r="9"/>
+<circle class="cor" data-corner="1" cx="2620" cy="1120" r="9"/>
 <text class="dim" x="2513.93" y="1226.07" text-anchor="middle">90° · b2</text>
-<circle class="cor" cx="1120" cy="1120" r="9"/>
+<circle class="cor" data-corner="2" cx="1120" cy="1120" r="9"/>
 <text class="dim" x="1013.93" y="1226.07" text-anchor="middle">-90° · free</text>
-<circle class="cor" cx="1120" cy="120" r="9"/>
+<circle class="cor" data-corner="3" cx="1120" cy="120" r="9"/>
 <text class="dim" x="1013.93" y="226.07" text-anchor="middle">90° · free</text>
-<circle class="cor" cx="120" cy="120" r="9"/>
+<circle class="cor" data-corner="4" cx="120" cy="120" r="9"/>
 <text class="dim" x="226.07" y="226.07" text-anchor="middle">90° · free</text>
-<circle class="cor" cx="120" cy="2620" r="9"/>
+<circle class="cor" data-corner="5" cx="120" cy="2620" r="9"/>
 <text class="dim" x="226.07" y="2513.93" text-anchor="middle">90° · a1</text>
 </svg>

@@ -66,6 +66,9 @@ export function planSvg(bundle, opts = {}) {
       .m.hi{fill:#f59e0b;fill-opacity:.45;stroke:#b45309;stroke-width:3}
       .m.err{fill:#f87171;fill-opacity:.5;stroke:#b91c1c;stroke-width:3}
       .res{fill:#ef4444;fill-opacity:.12;stroke:#dc2626;stroke-width:2;stroke-dasharray:6 4}
+      .run{stroke:#059669;stroke-width:3;fill:none}
+      .runh{fill:#059669}
+      .runlbl{font:600 22px ui-monospace,monospace;fill:#047857}
       .lbl{font:600 26px ui-monospace,monospace;fill:#111827}
       .dim{font:500 24px ui-monospace,monospace;fill:#6b7280}
       .cor{fill:#dc2626}
@@ -121,6 +124,31 @@ export function planSvg(bundle, opts = {}) {
       const pts = poly.map((p) => `${fmt(sx(p.x))},${fmt(sy(p.y))}`).join(' ');
       out.push(`<polygon class="res" points="${pts}"><title>corner reservation ${esc(w.id)}</title></polygon>`);
     }
+  }
+
+  // Runs (CP-02 §7): fill-direction arrows + labels, derived from bundle.runs.
+  for (const run of bundle.runs ?? []) {
+    const w = room.wall(run.wallId);
+    if (!w || w.length < 320) continue;
+    const shift = scale(w.inwardNormal, depth + 120);
+    const from = run.startPoint === 'end' ? w.length - 40 : 40;
+    const to = run.startPoint === 'end' ? w.length - 260 : 260;
+    const a = add(wallPointAt(w, from), shift);
+    const b = add(wallPointAt(w, to), shift);
+    out.push(
+      `<line class="run" x1="${fmt(sx(a.x))}" y1="${fmt(sy(a.y))}" x2="${fmt(sx(b.x))}" y2="${fmt(sy(b.y))}"/>`,
+    );
+    const d = scale(w.direction, run.startPoint === 'end' ? -1 : 1);
+    const h1 = add(b, add(scale(d, -45), scale(w.inwardNormal, 26)));
+    const h2 = add(b, add(scale(d, -45), scale(w.inwardNormal, -26)));
+    out.push(
+      `<polygon class="runh" points="${fmt(sx(b.x))},${fmt(sy(b.y))} ${fmt(sx(h1.x))},${fmt(sy(h1.y))} ${fmt(sx(h2.x))},${fmt(sy(h2.y))}"/>`,
+    );
+    const lbl = add(wallPointAt(w, (from + to) / 2), scale(w.inwardNormal, depth + 200));
+    out.push(
+      `<text class="runlbl" x="${fmt(sx(lbl.x))}" y="${fmt(sy(lbl.y))}" text-anchor="middle">` +
+        `run ${esc(run.wallId)} · ${esc(run.startPoint)} · ${run.moduleIds.length}</text>`,
+    );
   }
 
   // Modules, from the derived footprints.
