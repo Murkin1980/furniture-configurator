@@ -23,6 +23,7 @@ import { buildProject, updateModule } from '../model/project.js';
 import { planSvg } from '../view/planSvg.js';
 import { isoSvg } from '../view/isoSvg.js';
 import { sceneGraph } from '../view/scene3d.js';
+import { exportGlb } from '../view/glb.js';
 
 const ROOT = resolve(fileURLToPath(new URL('../../..', import.meta.url)));
 const OUT = resolve(ROOT, 'docs/checkpoints/evidence');
@@ -133,6 +134,9 @@ await writeFile(
   JSON.stringify(sceneGraph(base), null, 2) + '\n',
   'utf8',
 );
+
+// CP-05 evidence: binary glTF export of the same derived scene.
+await writeFile(resolve(OUT, 'kitchen-2500x1500.glb'), exportGlb(base));
 
 const offset = (b, id) => b.modules.find((m) => m.id === id).wallOffset;
 console.log('evidence written to docs/checkpoints/evidence/');

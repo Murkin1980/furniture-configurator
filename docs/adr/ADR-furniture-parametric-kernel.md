@@ -102,3 +102,15 @@ Editing proves the CP-02 API is UI-sufficient without giving the UI any placemen
 - Invalid edits throw the API's descriptive errors; the preview panel surfaces them verbatim.
 - `applyActions()` gives deterministic replay (basis for future undo/redo, which stays out of scope).
 - Verified by `src/kernel/tests/cp04-editor.test.js` (100 tests total, all green).
+
+## CP-05 addendum (GLB export of the derived scene)
+
+The derived scene is consumable outside the repository's own views:
+
+- `view/glb.js` `exportGlb(bundle)` emits spec-compliant binary glTF 2.0: JSON + BIN chunks, one
+  TRS node per box (parts/walls/floor) over a shared unit-cube mesh, three simple materials.
+  `parseGlb()` supports tests/debug. No new dimensions: node TRS is sceneGraph data.
+- GLB import back into the canonical model stays out of scope - the model remains authored JSON,
+  never derived from 3D (protects the one-way flow).
+- Verified by `cp05-glb.test.js` (container, node parity, TRS vs moduleTransform, determinism) and
+  out-of-band by parsing the committed artifact with three's GLTFLoader (37 meshes).

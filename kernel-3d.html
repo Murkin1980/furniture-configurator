@@ -31,6 +31,7 @@
     </select>
   </label>
   <button id="reset">reload</button>
+  <button id="glb">download GLB</button>
   <a href="./kernel-preview.html">plan view</a>
   <span id="meta"></span>
 </header>
@@ -39,7 +40,9 @@
 
 <script type="module">
 import * as THREE from 'three';
-import { buildProject, sceneGraph } from './src/kernel/index.js';
+import { buildProject, sceneGraph, exportGlb } from './src/kernel/index.js';
+
+let currentDef = null;
 
 const $ = (s) => document.querySelector(s);
 const errBox = $('#err');
@@ -136,11 +139,22 @@ function resize() {
 
 async function loadFixture(path) {
   try {
-    const def = await (await fetch(path)).json();
-    populate(buildProject(def));
+    currentDef = await (await fetch(path)).json();
+    populate(buildProject(currentDef));
   } catch (e) {
     fail('failed to load fixture: ' + e.message);
   }
+}
+
+function downloadGlb() {
+  if (!currentDef) return;
+  const bytes = exportGlb(buildProject(currentDef));
+  const blob = new Blob([bytes], { type: 'model/gltf-binary' });
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = `${currentDef.id ?? 'kitchen'}.glb`;
+  a.click();
+  URL.revokeObjectURL(a.href);
 }
 
 try {
@@ -167,6 +181,7 @@ if (renderer) {
   await loadFixture($('#fixture').value);
   $('#fixture').addEventListener('change', (e) => loadFixture(e.target.value));
   $('#reset').addEventListener('click', () => loadFixture($('#fixture').value));
+  $('#glb').addEventListener('click', downloadGlb);
 
   renderer.setAnimationLoop(() => { placeCamera(); renderer.render(scene, camera); });
 }
