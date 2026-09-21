@@ -77,3 +77,17 @@ Multi-wall placement was added without new dependencies and without touching the
   stays renderer-agnostic, so a WebGL view can be attached later as a derived renderer.
 - Evidence: `docs/checkpoints/CP-02-EVIDENCE.md` plus
   `docs/checkpoints/evidence/plan-kitchen-{straight,p,multirun,2500x1500}.svg`.
+
+## CP-03 addendum (derived 3D view)
+
+A read-only 3D renderer was attached without touching the one-way flow:
+
+- `view/scene3d.js` is renderer-free: it re-exports `part.box` numbers as world-space boxes
+  (floor slab, wall boxes, part boxes) using the same `moduleTransform` as the plan/iso views.
+- `kernel-3d.html` consumes `sceneGraph()` with a **vendored** Three.js r160
+  (`view/vendor/three.module.min.js`, sha256 recorded in the vendor README) because sandbox egress
+  to CDNs is blocked while the npm registry is reachable. The kernel core and all tests remain
+  dependency-free.
+- 3D adds no interaction: placement/editing in 3D and export pipelines stay out of scope.
+- Verified by `src/kernel/tests/cp03-scene3d.test.js` (part/box parity with the BOM, footprint
+  consistency, 3D corner disjointness, room-envelope containment, determinism).

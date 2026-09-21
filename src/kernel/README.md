@@ -34,7 +34,8 @@ src/kernel/
   validation/ codes (OVERLAP, OUT_OF_WALL, CANNOT_PLACE, CORNER_CONFLICT, RUN_GAP,
               OPENING_BLOCKED, UNKNOWN_WALL)
   model/      canonical model + buildProject/update*; runs.js = canonical runs normalisation
-  view/       planSvg.js (plan), isoSvg.js (isometric wireframe)
+  view/       planSvg.js (plan), isoSvg.js (isometric wireframe), scene3d.js (3D scene data,
+              CP-03; renderer-free) + vendor/three.module.min.js (r160, for kernel-3d.html only)
   tools/      serve.js (static server), render-evidence.js (artifact generator)
   tests/      node:test suites incl. the 10-point fixture acceptance
 ```
@@ -100,12 +101,20 @@ only the canonical model and returns `{ definition, derived }` rebuilt by buildP
 Invalid operations (unknown wall/module, out-of-range index) throw descriptive errors. The UI must
 not own placement logic.
 
+## 3D view (CP-03)
+
+view/scene3d.js projects the bundle into world-space boxes (floor, walls, one box per part.box)
+with NO renderer import; kernel-3d.html renders that data with a vendored Three.js (r160). The 3D
+view is derived and read-only - plan, iso and 3D all read the same part boxes, so there is still no
+second source of dimensions.
+
 ## Run it
 
 ```
-npm test                                   # node:test, 86 tests, zero deps
+npm test                                   # node:test, 91 tests, zero deps
 node src/kernel/tools/serve.js 8080        # static server
 # open http://127.0.0.1:8080/kernel-preview.html   (debug preview)
+# open http://127.0.0.1:8080/kernel-3d.html        (derived 3D view, CP-03)
 # open http://127.0.0.1:8080/                    (existing configurator)
 node src/kernel/tools/render-evidence.js   # regenerate docs/checkpoints/evidence/
 ```

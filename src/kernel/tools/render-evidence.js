@@ -22,6 +22,7 @@ import { resolve } from 'node:path';
 import { buildProject, updateModule } from '../model/project.js';
 import { planSvg } from '../view/planSvg.js';
 import { isoSvg } from '../view/isoSvg.js';
+import { sceneGraph } from '../view/scene3d.js';
 
 const ROOT = resolve(fileURLToPath(new URL('../../..', import.meta.url)));
 const OUT = resolve(ROOT, 'docs/checkpoints/evidence');
@@ -126,6 +127,13 @@ const pshape = buildProject(
 );
 await writeFile(resolve(OUT, 'plan-kitchen-p.svg'), planSvg(pshape), 'utf8');
 
+// CP-03 evidence: the renderer-free scene graph for the CP-01 fixture.
+await writeFile(
+  resolve(OUT, 'scene-kitchen-2500x1500.json'),
+  JSON.stringify(sceneGraph(base), null, 2) + '\n',
+  'utf8',
+);
+
 const offset = (b, id) => b.modules.find((m) => m.id === id).wallOffset;
 console.log('evidence written to docs/checkpoints/evidence/');
 console.log(`  baseline: parts=${base.parts.length} bomLines=${base.bom.length} panels=${base.totals.panels} area=${base.totals.areaM2.toFixed(4)}m2`);
@@ -136,3 +144,4 @@ console.log(`  multirun -> wall-a offsets ${mr.modules.filter((m) => m.wallId ==
 console.log(`  multirun -> errors ${mr.issues.filter((i) => i.severity === 'error').length}; warnings ${mr.issues.filter((i) => i.severity === 'warning').map((i) => i.code).join(',') || 'none'}`);
 console.log(`  straight -> offsets ${straight.modules.map((m) => m.wallOffset).join(',')} errors ${straight.issues.filter((i) => i.severity === 'error').length}`);
 console.log(`  p-shape  -> ${pshape.occupancy.map((o) => `${o.wallId} usable=${Math.round(o.usable)}`).join(' ')}; errors ${pshape.issues.filter((i) => i.severity === 'error').length}`);
+console.log(`  scene3d  -> ${sceneGraph(base).partCount} part boxes, ${sceneGraph(base).walls.length} wall boxes, ${sceneGraph(base).modules.length} modules`);

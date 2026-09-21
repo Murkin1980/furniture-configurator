@@ -26,3 +26,4 @@ export * from './placement/operations.js';
 
 export * from './view/planSvg.js';
 export * from './view/isoSvg.js';
+export * from './view/scene3d.js';
