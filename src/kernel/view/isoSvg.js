@@ -37,12 +37,13 @@ function boxToWorld(transform, box) {
       }
     }
   }
+  const zOff = transform.bottomZ ?? 0; // derived elevation (CP-12), read not re-derived
   return corners.map(([x, y, z]) => {
     const wx =
       transform.origin.x + x * transform.direction.x + y * transform.inwardNormal.x;
     const wy =
       transform.origin.y + x * transform.direction.y + y * transform.inwardNormal.y;
-    return isoProject(wx, wy, z);
+    return isoProject(wx, wy, z + zOff);
   });
 }
 
@@ -71,7 +72,10 @@ export function isoSvg(bundle, opts = {}) {
 
   // One wireframe box per PART, taken straight from part.box.
   const transforms = new Map(
-    bundle.modules.map((m) => [m.id, moduleTransform(bundle.room, m)]),
+    bundle.modules.map((m) => [
+      m.id,
+      { ...moduleTransform(bundle.room, m), bottomZ: m.bottomZ ?? 0 },
+    ]),
   );
   for (const part of bundle.parts) {
     if (!part.box) continue;

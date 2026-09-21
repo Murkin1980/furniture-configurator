@@ -1,0 +1,85 @@
+{
+  "generatedBy": "src/kernel/tools/render-evidence.js",
+  "fixture": "fixtures/kitchen-vertical/project.json",
+  "installation": {
+    "plinthHeight": 100,
+    "worktopThickness": 38
+  },
+  "modules": [
+    {
+      "id": "v1",
+      "type": "base-cabinet",
+      "bottomZ": 100,
+      "topZ": 820
+    },
+    {
+      "id": "v2",
+      "type": "base-cabinet",
+      "bottomZ": 100,
+      "topZ": 820
+    },
+    {
+      "id": "t1",
+      "type": "tall-cabinet",
+      "bottomZ": 100,
+      "topZ": 2200
+    },
+    {
+      "id": "w1",
+      "type": "wall-cabinet",
+      "bottomZ": 1400,
+      "topZ": 2120
+    },
+    {
+      "id": "w2",
+      "type": "wall-cabinet",
+      "bottomZ": 1400,
+      "topZ": 2120
+    }
+  ],
+  "worktops": [
+    {
+      "wallId": "wall-a",
+      "level": true,
+      "heights": [
+        720
+      ],
+      "topZ": 858
+    }
+  ],
+  "checklist": [
+    {
+      "id": "fits-room",
+      "status": "pass"
+    },
+    {
+      "id": "no-gaps",
+      "status": "fail"
+    },
+    {
+      "id": "base-depth",
+      "status": "pass"
+    },
+    {
+      "id": "top-depth",
+      "status": "pass"
+    },
+    {
+      "id": "corner-facade",
+      "status": "na"
+    },
+    {
+      "id": "worktop-height",
+      "status": "pass"
+    },
+    {
+      "id": "sink-width",
+      "status": "na"
+    }
+  ],
+  "issues": [
+    "RUN_GAP",
+    "RUN_GAP",
+    "RUN_GAP"
+  ]
+}

@@ -47,6 +47,7 @@
               <option value="./fixtures/kitchen-multirun/project.json">Two-run + door 3000 × 2000 (CP-02)</option>
               <option value="./fixtures/kitchen-straight/project.json">Straight 4000 (CP-02)</option>
               <option value="./fixtures/kitchen-p/project.json">P-shaped two parallel runs (CP-02)</option>
+              <option value="./fixtures/kitchen-vertical/project.json">Vertical: base + wall + tall (CP-12)</option>
             </select>
           </label>
           <label>module
@@ -106,6 +107,11 @@
       <section>
         <h2>Checklist (CP-11, derived ergonomics)</h2>
         <div id="checklist" class="kv"></div>
+      </section>
+
+      <section>
+        <h2>Vertical (CP-12, derived elevation)</h2>
+        <div id="vertical" class="kv"></div>
       </section>
 
       <section class="wide">
@@ -190,6 +196,24 @@
             return `<div class="${cls}">${i.status.toUpperCase()} · ${i.id}: ${i.message}</div>`;
           })
           .join('');
+
+        // Vertical (CP-12): derived elevation read straight from the bundle.
+        const inst = bundle.installation;
+        const sel = bundle.modules.find((m) => m.id === $('module').value);
+        const vRows = [
+          `<div><span>installation</span><span>plinth ${fmt(inst.plinthHeight)} · worktop ${fmt(inst.worktopThickness)}</span></div>`,
+        ];
+        if (sel) {
+          const z = sel.bottomZ == null ? 'no anchor' : `${fmt(sel.bottomZ)} → ${fmt(sel.topZ)}`;
+          vRows.push(`<div><span>${sel.id} · ${sel.type}</span><span>bottom/top Z ${z}</span></div>`);
+        }
+        for (const w of bundle.worktops) {
+          vRows.push(
+            `<div class="${w.level ? 'ok' : 'issue-error'}"><span>worktop ${w.wallId}</span>` +
+            `<span>${w.level ? `top ${fmt(w.topZ)} (level)` : 'unlevel base run'}</span></div>`,
+          );
+        }
+        $('vertical').innerHTML = vRows.join('');
 
         // BOM.
         const rows = bundle.bom

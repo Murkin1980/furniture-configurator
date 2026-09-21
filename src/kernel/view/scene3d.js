@@ -49,8 +49,10 @@ export function sceneGraph(bundle) {
 
   const modules = bundle.modules.map((m) => {
     const t = moduleTransform(room, m);
+    // Derived Z elevation (CP-12) - read from the bundle, never re-derived.
+    const bz = m.bottomZ ?? 0;
     const basis = {
-      origin: { x: t.origin.x, y: t.origin.y, z: 0 },
+      origin: { x: t.origin.x, y: t.origin.y, z: bz },
       x: { x: t.direction.x, y: t.direction.y, z: 0 },
       y: { x: t.inwardNormal.x, y: t.inwardNormal.y, z: 0 },
       z: zBasis(),
@@ -63,7 +65,7 @@ export function sceneGraph(bundle) {
         material: p.material,
         min: p.box.min,
         max: p.box.max,
-        corners: boxCorners(t, p.box),
+        corners: boxCorners(t, p.box).map((c) => ({ ...c, z: c.z + bz })),
       }));
     return { id: m.id, wallId: m.wallId, basis, parts };
   });

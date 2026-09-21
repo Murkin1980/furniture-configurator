@@ -6,12 +6,54 @@
  */
 
 import { findOverlaps, moduleWithinWall, wallOccupancy, computeReservations } from '../placement/placement.js';
+import { installationValid } from '../model/installation.js';
 
 /**
  * @returns {Array<{code,severity,message,subject}>}
  */
-export function validateProject(room, modules) {
+export function validateProject(room, modules, opts = {}) {
   const issues = [];
+  const installation = opts.installation;
+
+  // CP-12 vertical validation (stable codes, deterministic messages).
+  if (installation && !installationValid(installation)) {
+    issues.push({
+      code: 'VERTICAL_PARAM_INVALID',
+      severity: 'error',
+      subject: 'installation',
+      message: 'installation plinthHeight/worktopThickness must be finite numbers >= 0',
+    });
+  }
+  for (const m of modules) {
+    if (m.type === 'wall-cabinet' && m.bottomZ == null) {
+      issues.push({
+        code: 'WALL_CABINET_NO_ANCHOR',
+        severity: 'error',
+        subject: m.id,
+        message: `wall cabinet "${m.id}" needs a finite parameters.mountHeight >= 0`,
+      });
+    }
+    if (m.topZ != null && m.topZ > room.height) {
+      issues.push({
+        code: 'MODULE_ABOVE_ROOM',
+        severity: 'error',
+        subject: m.id,
+        message: `module "${m.id}" top ${m.topZ} mm exceeds room height ${room.height} mm`,
+      });
+    }
+  }
+  for (const w of room.walls) {
+    const bases = modules.filter((x) => x.wallId === w.id && x.type === 'base-cabinet');
+    const heights = [...new Set(bases.map((x) => x.height))];
+    if (heights.length > 1) {
+      issues.push({
+        code: 'WORKTOP_UNLEVEL',
+        severity: 'error',
+        subject: w.id,
+        message: `wall "${w.id}" base heights incompatible (${heights.join(', ')}) - one worktop plane impossible`,
+      });
+    }
+  }
   const reservations = computeReservations(room, modules);
 
   for (const m of modules) {

@@ -1,0 +1,31 @@
+{
+  "id": "kitchen-vertical",
+  "name": "Vertical kitchen: base + wall + tall (CP-12)",
+  "units": "mm",
+  "source": "CP-12 vertical system fixture (base, wall-cabinet with mount, tall-cabinet)",
+  "room": {
+    "id": "room-rect",
+    "height": 2500,
+    "walls": [
+      { "id": "wall-a", "start": { "x": 0, "y": 0 }, "end": { "x": 3000, "y": 0 }, "thickness": 100 },
+      { "id": "wall-b", "start": { "x": 3000, "y": 0 }, "end": { "x": 3000, "y": 2000 }, "thickness": 100 },
+      { "id": "wall-c", "start": { "x": 3000, "y": 2000 }, "end": { "x": 0, "y": 2000 }, "thickness": 100 },
+      { "id": "wall-d", "start": { "x": 0, "y": 2000 }, "end": { "x": 0, "y": 0 }, "thickness": 100 }
+    ],
+    "openings": []
+  },
+  "installation": { "plinthHeight": 100, "worktopThickness": 38 },
+  "runs": [
+    { "wallId": "wall-a", "startPoint": "start", "moduleIds": ["v1", "v2"] },
+    { "wallId": "wall-b", "startPoint": "start", "moduleIds": ["t1"] },
+    { "wallId": "wall-c", "startPoint": "start", "moduleIds": ["w1", "w2"] }
+  ],
+  "modules": [
+    { "id": "v1", "type": "base-cabinet", "width": 600, "height": 720, "depth": 560 },
+    { "id": "v2", "type": "base-cabinet", "width": 600, "height": 720, "depth": 560 },
+    { "id": "t1", "type": "tall-cabinet", "width": 600, "height": 2100, "depth": 600 },
+    { "id": "w1", "type": "wall-cabinet", "width": 800, "height": 720, "depth": 350, "parameters": { "mountHeight": 1400 } },
+    { "id": "w2", "type": "wall-cabinet", "width": 800, "height": 720, "depth": 350, "parameters": { "mountHeight": 1400 } }
+  ],
+  "sheet": { "sheetWidth": 2800, "sheetHeight": 2070, "kerf": 4 }
+}

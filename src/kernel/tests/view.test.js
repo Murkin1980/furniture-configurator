@@ -70,13 +70,14 @@ test('the isometric view is built from part.box, not from private numbers', () =
   assert.ok(facade.box);
   const wall = derived.room.wall('wall-a');
   const drawn = drawnPoints(after);
+  const bz = derived.modules.find((m) => m.id === 'a1').bottomZ ?? 0; // CP-12 derived elevation
 
   const expected = [];
   for (const x of [facade.box.min.x, facade.box.max.x]) {
     for (const y of [facade.box.min.y, facade.box.max.y]) {
       for (const z of [facade.box.min.z, facade.box.max.z]) {
         // Wall A runs along +X from the origin with its inward normal at +Y.
-        const p = isoProject(wall.start.x + x, wall.start.y + y, z);
+        const p = isoProject(wall.start.x + x, wall.start.y + y, z + bz);
         expected.push(`${Math.round(p.x * 100) / 100},${Math.round(p.y * 100) / 100}`);
       }
     }
@@ -84,7 +85,7 @@ test('the isometric view is built from part.box, not from private numbers', () =
   for (const point of expected) {
     assert.ok(drawn.has(point), `expected projected facade corner ${point} in the SVG`);
   }
-  assert.ok(expected.includes('294.45,10'), 'sanity: the 900 mm wide facade is drawn');
+  assert.ok(expected.includes('294.45,-90'), 'sanity: the 900 mm wide facade top corner is drawn');
 });
 
 test('isoProject is a real isometric projection', () => {

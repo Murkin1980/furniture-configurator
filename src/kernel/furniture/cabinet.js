@@ -187,9 +187,82 @@ export function generateBaseCabinet(module) {
   return { module, params: { ...p, width: W, height: H, depth: D }, parts };
 }
 
+/** Default carcass parameters for wall / tall cabinets (CP-12). */
+export const WALL_CABINET_DEFAULTS = Object.freeze({
+  height: 720,
+  depth: 300,
+  panelThickness: 18,
+  facadeThickness: 18,
+  material: 'ldsp_18_white',
+  facadeMaterial: 'mdf_matte_white',
+});
+export const TALL_CABINET_DEFAULTS = Object.freeze({
+  height: 2000,
+  depth: 600,
+  panelThickness: 18,
+  facadeThickness: 18,
+  shelves: 3,
+  material: 'ldsp_18_white',
+  facadeMaterial: 'mdf_matte_white',
+});
+
+/** Shared carcass panels (sides/bottom/top) for wall & tall cabinets. */
+function carcassParts(module, p, W, H, D) {
+  const t = p.panelThickness;
+  const inner = W - 2 * t;
+  const parts = [];
+  parts.push(makePart({ module, role: 'side-left', name: 'Боковина левая', length: D, width: H, thickness: t, material: p.material, grain: 'length', edges: { ...noEdges(), alongLengthEnd: true }, box: { min: { x: 0, y: 0, z: 0 }, max: { x: t, y: D, z: H } } }));
+  parts.push(makePart({ module, role: 'side-right', name: 'Боковина правая', length: D, width: H, thickness: t, material: p.material, grain: 'length', edges: { ...noEdges(), alongLengthEnd: true }, box: { min: { x: W - t, y: 0, z: 0 }, max: { x: W, y: D, z: H } } }));
+  parts.push(makePart({ module, role: 'bottom', name: 'Дно', length: inner, width: D, thickness: t, material: p.material, grain: 'length', edges: { ...noEdges(), alongLengthEnd: true }, box: { min: { x: t, y: 0, z: 0 }, max: { x: W - t, y: D, z: t } } }));
+  parts.push(makePart({ module, role: 'top', name: 'Крыша', length: inner, width: D, thickness: t, material: p.material, grain: 'length', edges: noEdges(), box: { min: { x: t, y: 0, z: H - t }, max: { x: W - t, y: D, z: H } } }));
+  return { parts, inner, t };
+}
+
+/** Wall cabinet: hung carcass + facade (no plinth, no worktop). */
+export function generateWallCabinet(module) {
+  if (module.type !== 'wall-cabinet') {
+    throw new Error(`generateWallCabinet: unsupported module type "${module.type}"`);
+  }
+  const p = { ...WALL_CABINET_DEFAULTS, ...(module.parameters || {}) };
+  const W = module.width;
+  const H = module.height ?? p.height;
+  const D = module.depth ?? p.depth;
+  if (!(W > 2 * p.panelThickness)) {
+    throw new Error(`cabinet "${module.id}": width ${W} mm is too small for ${p.panelThickness} mm side panels`);
+  }
+  const { parts, inner, t } = carcassParts(module, p, W, H, D);
+  parts.push(makePart({ module, role: 'facade', name: 'Фасад', length: W, width: H, thickness: p.facadeThickness, material: p.facadeMaterial, grain: 'none', edges: { alongLengthStart: true, alongLengthEnd: true, alongWidthStart: true, alongWidthEnd: true }, box: { min: { x: 0, y: D, z: 0 }, max: { x: W, y: D + p.facadeThickness, z: H } } }));
+  return { module, params: { ...p, width: W, height: H, depth: D }, parts };
+}
+
+/** Tall/pantry cabinet: full-height carcass + explicit shelves + facade. */
+export function generateTallCabinet(module) {
+  if (module.type !== 'tall-cabinet') {
+    throw new Error(`generateTallCabinet: unsupported module type "${module.type}"`);
+  }
+  const p = { ...TALL_CABINET_DEFAULTS, ...(module.parameters || {}) };
+  const W = module.width;
+  const H = module.height ?? p.height;
+  const D = module.depth ?? p.depth;
+  const t = p.panelThickness;
+  if (!(W > 2 * t)) {
+    throw new Error(`cabinet "${module.id}": width ${W} mm is too small for ${t} mm side panels`);
+  }
+  const { parts, inner } = carcassParts(module, p, W, H, D);
+  const shelves = Math.max(0, Math.floor(p.shelves));
+  for (let s = 1; s <= shelves; s++) {
+    const z = Math.round((H / (shelves + 1)) * s);
+    parts.push(makePart({ module, role: `shelf-${s}`, name: `Полка ${s}`, length: inner, width: D - 2, thickness: t, material: p.material, grain: 'length', edges: noEdges(), box: { min: { x: t, y: 0, z: z }, max: { x: W - t, y: D - 2, z: z + t } } }));
+  }
+  parts.push(makePart({ module, role: 'facade', name: 'Фасад', length: W, width: H, thickness: p.facadeThickness, material: p.facadeMaterial, grain: 'none', edges: { alongLengthStart: true, alongLengthEnd: true, alongWidthStart: true, alongWidthEnd: true }, box: { min: { x: 0, y: D, z: 0 }, max: { x: W, y: D + p.facadeThickness, z: H } } }));
+  return { module, params: { ...p, width: W, height: H, depth: D }, parts };
+}
+
 /** Registry so a project can mix module types later without touching the BOM code. */
 export const MODULE_GENERATORS = {
   'base-cabinet': generateBaseCabinet,
+  'wall-cabinet': generateWallCabinet,
+  'tall-cabinet': generateTallCabinet,
 };
 
 export function generateModuleParts(module) {

@@ -154,7 +154,22 @@ a door makes the affected run re-pack automatically (verified on the multirun fi
 
 validation/checklist.js derives GrabSketch-style ergonomics readouts from the bundle: fits-room,
 no-gaps, base-depth >=560, top-depth 300-400, corner-facade >=500 (declared corner cabinets only),
-worktop/sink as 'na' when unmodelled. Read-only; the preview renders pass/fail/na.
+worktop-height 850-920, sink as 'na' when unmodelled. Read-only; the preview renders pass/fail/na.
+Since CP-12 worktop-height is a real pass/fail (derived from the worktop model) and top-depth is
+measured from the wall-cabinet generator; sink-width stays 'na' until a sink module exists.
+
+## Vertical model (CP-12)
+
+model/installation.js is the ONE kernel-owned place for the vertical kitchen. The canonical project
+carries `installation: { plinthHeight: 100, worktopThickness: 38 }` (defaults live in
+DEFAULT_INSTALLATION). buildProject() derives, and never re-stores, each placed module's elevation:
+base/tall cabinets ride the plinth (bottomZ = plinthHeight), wall cabinets hang at their explicit
+`parameters.mountHeight` anchor (a missing anchor is a WALL_CABINET_NO_ANCHOR issue, not a guess).
+A base run yields one derived worktop whose top = plinthHeight + cabinet height + worktopThickness;
+uneven base heights make the run unlevel (WORKTOP_UNLEVEL) and a module above the room ceiling is
+MODULE_ABOVE_ROOM. furniture/cabinet.js gained real wall-cabinet and tall-cabinet generators in the
+same MODULE_GENERATORS registry as base cabinets, so parts/BOM/3D/GLB/iso all flow unchanged. The
+views read `module.bottomZ` for the Z offset - no renderer or export re-derives the formula.
 
 ## Export (CP-05)
 
@@ -172,7 +187,7 @@ cutting output; the CSV half ships since CP-01. kernel-preview.html offers "down
 ## Run it
 
 ```
-npm test                                   # node:test, 134 tests, zero deps
+npm test                                   # node:test, 153 tests, zero deps
 node src/kernel/tools/serve.js 8080        # static server
 # open http://127.0.0.1:8080/kernel-preview.html   (debug preview)
 # open http://127.0.0.1:8080/kernel-3d.html        (derived 3D view, CP-03)

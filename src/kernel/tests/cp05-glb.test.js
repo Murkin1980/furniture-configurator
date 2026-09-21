@@ -51,11 +51,12 @@ test('cp05: node TRS equals the kernel transform math', () => {
       const cx = (p.box.min.x + p.box.max.x) / 2;
       const cy = (p.box.min.y + p.box.max.y) / 2;
       const cz = (p.box.min.z + p.box.max.z) / 2;
+      const bz = m.bottomZ ?? 0; // CP-12 derived elevation; GLB must read it, not re-derive
       const ex = t.origin.x + cx * t.direction.x + cy * t.inwardNormal.x;
       const ey = t.origin.y + cx * t.direction.y + cy * t.inwardNormal.y;
       assert.ok(Math.abs(n.translation[0] - ex) <= TOL, `${n.name} tx`);
       assert.ok(Math.abs(n.translation[1] - ey) <= TOL, `${n.name} ty`);
-      assert.ok(Math.abs(n.translation[2] - cz) <= TOL, `${n.name} tz`);
+      assert.ok(Math.abs(n.translation[2] - (cz + bz)) <= TOL, `${n.name} tz`);
       assert.deepEqual(
         n.scale.map((v) => Math.round(v)),
         [p.box.max.x - p.box.min.x, p.box.max.y - p.box.min.y, p.box.max.z - p.box.min.z],

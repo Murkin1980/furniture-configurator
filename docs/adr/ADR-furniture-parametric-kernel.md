@@ -180,3 +180,24 @@ GrabSketch's numeric checklist becomes derived validation readouts:
   'na' when unmodelled). CHECKLIST_LIMITS exports the thresholds.
 - Read-only: the checklist reports; it never mutates. Unmodelled rules are 'na', not invented.
 - Verified by `cp11-checklist.test.js`; 134 tests green.
+
+## CP-12 addendum (kitchen vertical system)
+
+The canonical project gains one explicit vertical input, and elevation becomes derived:
+
+- Canonical schema adds `installation: { plinthHeight, worktopThickness }` (project-level). The
+  defaults live in ONE place, `model/installation.js` DEFAULT_INSTALLATION, merged by
+  normalizeInstallation(); an invalid installation is a VERTICAL_PARAM_INVALID issue.
+- `moduleElevation(installation, module)` is the single derivation: base/tall cabinets ride the
+  plinth (bottomZ = plinthHeight); wall cabinets hang at their explicit `parameters.mountHeight`
+  anchor (missing/invalid anchor => WALL_CABINET_NO_ANCHOR, never a guessed height). buildProject()
+  attaches bottomZ/topZ to every placed module and derives one worktop per base run
+  (top = plinthHeight + cabinet height + worktopThickness). Uneven base heights => WORKTOP_UNLEVEL;
+  a module above room.height => MODULE_ABOVE_ROOM.
+- `furniture/cabinet.js` gained real wall-cabinet and tall-cabinet generators in the SAME
+  MODULE_GENERATORS registry as base cabinets, so parts/BOM/3D/GLB/iso/PDF flow unchanged and stay
+  derived from generator parts.
+- Views/exports read `module.bottomZ` for the Z offset (scene3d, isoSvg, glb via the scene graph);
+  no renderer or export re-derives the formula. The CP-11 checklist worktop-height is now a real
+  pass/fail and top-depth is measured from the wall-cabinet generator.
+- Verified by `cp12-vertical.test.js` on the new `kitchen-vertical` fixture; 153 tests green.

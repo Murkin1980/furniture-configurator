@@ -22,6 +22,11 @@
 import { buildRoom } from '../room/room.js';
 import { normalizeProject, runsStartPoints } from './runs.js';
 import {
+  normalizeInstallation,
+  moduleElevation,
+  worktopTopZ,
+} from './installation.js';
+import {
   computeReservations,
   cornerOccupancy,
   layoutModules,
@@ -91,9 +96,35 @@ export function buildProject(definition) {
   // 1. Room geometry: walls, COMPUTED corners, inward normals, openings.
   const room = buildRoom(def.room);
 
+  // 1b. Vertical installation model (CP-12): kernel-owned defaults + derivation.
+  const installation = normalizeInstallation(def);
+
   // 2. Placement: resolve wallOffsets (auto-packed runs honour corner
   //    reservations and openings; each run sets its wall's fill direction).
-  const modules = layoutModules(room, ordered, { runs: runsStartPoints(runs) });
+  //    Then attach the derived Z elevation so every 3D/export consumer reads
+  //    the SAME numbers (no independent vertical formula anywhere).
+  const modules = layoutModules(room, ordered, { runs: runsStartPoints(runs) }).map((m) => {
+    const el = moduleElevation(installation, m);
+    return el
+      ? { ...m, bottomZ: el.bottomZ, topZ: el.topZ }
+      : { ...m, bottomZ: null, topZ: null };
+  });
+
+  // 2b. Derived worktop readout per base run (level? top elevation?).
+  const worktops = room.walls
+    .map((w) => {
+      const bases = modules.filter((m) => m.wallId === w.id && m.type === 'base-cabinet');
+      if (!bases.length) return null;
+      const heights = [...new Set(bases.map((m) => m.height))];
+      const level = heights.length === 1;
+      return {
+        wallId: w.id,
+        level,
+        heights,
+        topZ: level ? worktopTopZ(installation, bases[0]) : null,
+      };
+    })
+    .filter(Boolean);
 
   // 3. Manufacturing: parts come from the parametric generators only.
   const parts = deriveParts(modules);
@@ -103,8 +134,8 @@ export function buildProject(definition) {
   const totals = bomTotals(bom);
   const cutting = cuttingGroups(bom, def.sheet ?? {});
 
-  // 5. Validation: same derived data, third consumer.
-  const issues = validateProject(room, modules);
+  // 5. Validation: same derived data, third consumer (vertical-aware, CP-12).
+  const issues = validateProject(room, modules, { installation });
 
   // 6. Corner + occupancy evidence, derived.
   const reservations = computeReservations(room, modules);
@@ -123,7 +154,9 @@ export function buildProject(definition) {
     definition: def,
     runs,
     room,
+    installation,
     modules,
+    worktops,
     parts,
     bom,
     totals,

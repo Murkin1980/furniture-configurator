@@ -25,6 +25,7 @@ import { isoSvg } from '../view/isoSvg.js';
 import { sceneGraph } from '../view/scene3d.js';
 import { exportGlb } from '../view/glb.js';
 import { cuttingPdf } from '../view/cuttingPdf.js';
+import { checklist } from '../validation/checklist.js';
 
 const ROOT = resolve(fileURLToPath(new URL('../../..', import.meta.url)));
 const OUT = resolve(ROOT, 'docs/checkpoints/evidence');
@@ -145,6 +146,39 @@ await writeFile(
   cuttingPdf(base, { projectId: definition.id }),
 );
 
+// CP-12 evidence: the vertical kitchen (base + wall + tall) and its derived
+// elevation. Every Z number below is read from the bundle, never recomputed.
+const vertical = JSON.parse(
+  readFileSync(resolve(ROOT, 'fixtures/kitchen-vertical/project.json'), 'utf8'),
+);
+const vb = buildProject(vertical);
+await writeFile(resolve(OUT, 'iso-kitchen-vertical.svg'), isoSvg(vb), 'utf8');
+await writeFile(
+  resolve(OUT, 'scene-kitchen-vertical.json'),
+  JSON.stringify(sceneGraph(vb), null, 2) + '\n',
+  'utf8',
+);
+await writeFile(resolve(OUT, 'kitchen-vertical.glb'), exportGlb(vb));
+await writeFile(
+  resolve(OUT, 'vertical-report.json'),
+  JSON.stringify(
+    {
+      generatedBy: 'src/kernel/tools/render-evidence.js',
+      fixture: 'fixtures/kitchen-vertical/project.json',
+      installation: vb.installation,
+      modules: vb.modules.map((m) => ({
+        id: m.id, type: m.type, bottomZ: m.bottomZ, topZ: m.topZ,
+      })),
+      worktops: vb.worktops,
+      checklist: checklist(vb).map((i) => ({ id: i.id, status: i.status })),
+      issues: vb.issues.map((i) => i.code),
+    },
+    null,
+    2,
+  ) + '\n',
+  'utf8',
+);
+
 const offset = (b, id) => b.modules.find((m) => m.id === id).wallOffset;
 console.log('evidence written to docs/checkpoints/evidence/');
 console.log(`  baseline: parts=${base.parts.length} bomLines=${base.bom.length} panels=${base.totals.panels} area=${base.totals.areaM2.toFixed(4)}m2`);
@@ -156,3 +190,7 @@ console.log(`  multirun -> errors ${mr.issues.filter((i) => i.severity === 'erro
 console.log(`  straight -> offsets ${straight.modules.map((m) => m.wallOffset).join(',')} errors ${straight.issues.filter((i) => i.severity === 'error').length}`);
 console.log(`  p-shape  -> ${pshape.occupancy.map((o) => `${o.wallId} usable=${Math.round(o.usable)}`).join(' ')}; errors ${pshape.issues.filter((i) => i.severity === 'error').length}`);
 console.log(`  scene3d  -> ${sceneGraph(base).partCount} part boxes, ${sceneGraph(base).walls.length} wall boxes, ${sceneGraph(base).modules.length} modules`);
+console.log(`  vertical -> installation plinth=${vb.installation.plinthHeight} worktop=${vb.installation.worktopThickness}`);
+console.log(`  vertical -> elevations ${vb.modules.map((m) => `${m.id}:${m.bottomZ}..${m.topZ}`).join(' ')}`);
+console.log(`  vertical -> worktop ${vb.worktops.map((w) => `${w.wallId} top=${w.topZ}${w.level ? '' : ' (unlevel)'}`).join(' ')}`);
+console.log(`  vertical -> checklist ${checklist(vb).map((i) => `${i.id}=${i.status}`).join(' ')}`);

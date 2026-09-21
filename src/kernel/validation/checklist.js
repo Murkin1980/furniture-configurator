@@ -96,12 +96,24 @@ export function checklist(bundle) {
       : 'no declared corner cabinet',
   });
 
-  // 6. Worktop 850..920 - not modelled as a parameter yet.
-  items.push({
-    id: 'worktop-height',
-    status: 'na',
-    message: `worktop ${L.worktopMin}-${L.worktopMax} not modelled as a parameter yet`,
-  });
+  // 6. Worktop top 850..920 - now derived from base runs + plinth + thickness.
+  const worktops = bundle.worktops ?? [];
+  if (!worktops.length) {
+    items.push({ id: 'worktop-height', status: 'na', message: 'no base run to derive a worktop from' });
+  } else {
+    const unlevel = worktops.filter((w) => !w.level);
+    const out = worktops.filter((w) => w.level && (w.topZ < L.worktopMin || w.topZ > L.worktopMax));
+    const status = unlevel.length || out.length ? 'fail' : 'pass';
+    items.push({
+      id: 'worktop-height',
+      status,
+      message: unlevel.length
+        ? `unlevel base run(s): ${unlevel.map((w) => w.wallId).join(', ')}`
+        : out.length
+          ? `worktop top outside ${L.worktopMin}-${L.worktopMax}: ${out.map((w) => `${w.wallId}=${w.topZ}`).join(', ')}`
+          : `worktop top within ${L.worktopMin}-${L.worktopMax} on every base run`,
+    });
+  }
 
   // 7. Sink cabinet >= 600 - only when a module declares a sink.
   const sinks = bundle.modules.filter((m) => m.parameters?.sink);

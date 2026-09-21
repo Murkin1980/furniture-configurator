@@ -24,7 +24,8 @@ test('cp11: CP-01 fixture passes the modelled rules', () => {
   assert.equal(item(list, 'base-depth').status, 'pass');
   assert.equal(item(list, 'corner-facade').status, 'na'); // no declared corner cabinet
   assert.equal(item(list, 'top-depth').status, 'na');
-  assert.equal(item(list, 'worktop-height').status, 'na');
+  // CP-12: worktop-height is no longer always na - 100+720+38 = 858, inside 850..920.
+  assert.equal(item(list, 'worktop-height').status, 'pass');
 });
 
 test('cp11: declared corner cabinets are checked against 500', () => {

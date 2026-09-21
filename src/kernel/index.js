@@ -23,6 +23,7 @@ export * from './validation/checklist.js';
 
 export * from './model/project.js';
 export * from './model/runs.js';
+export * from './model/installation.js';
 export * from './model/editor.js';
 export * from './model/history.js';
 export * from './model/drop.js';
