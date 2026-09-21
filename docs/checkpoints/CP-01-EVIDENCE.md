@@ -9,7 +9,7 @@ Murkin1980/furniture-configurator
 BRANCH:
 arena/01a0c2ce-furniture-configurator
 HEAD SHA:
-__HEAD_SHA__            (implementation commit; set at push time)
+4bbf9bb33c2c22ecedf0c43011c8b2e2beffb269   (implementation commit containing kernel+tests)
 BASE SHA:
 fb50b1e2b648cd1133dc305b71a60ac81d5e8041   (master; branch start)
 
