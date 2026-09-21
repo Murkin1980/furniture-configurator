@@ -159,3 +159,14 @@ The edit story becomes durable and reversible without ever storing derived state
   editing surface is undoable and replayable; applyAction gained {type:'moveCorner'}.
 - Verified by `cp09-history.test.js` (undo/redo, redo-clear, empty throws, replayable corner edit,
   round-trip persistence, validate-before-record). 122 tests green.
+
+## CP-10 addendum (openings editing)
+
+The last canonical-editing surface (doors/windows) joins the journal:
+
+- `model/openings.js` move/resize/add/remove openings, rewriting only wall-relative fields with
+  clamping; wall length derived from endpoints (raw walls store none).
+- applyAction accepts the four opening actions, so opening edits are undoable/persistable.
+- Placement packs around blocked intervals, so sliding a door re-packs the run automatically
+  (multirun fixture: door 1200->0 shifts wall-a offsets 0/600/2000 -> 800/1400/2000).
+- Verified by `cp10-openings.test.js`; 128 tests green.

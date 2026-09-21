@@ -83,7 +83,7 @@
       </section>
 
       <section>
-        <h2>Plan — drag a module to move it (CP-07); drag a red corner to reshape the room, Shift = 90° (CP-08)</h2>
+        <h2>Plan — drag a module (CP-07), a red corner (Shift = 90°, CP-08), or a cyan opening (CP-10)</h2>
         <div id="plan"></div>
       </section>
 
@@ -132,6 +132,7 @@
       let lastBundle = null;
       let dragId = null;
       let cornerDrag = null;
+      let openingDrag = null;
       const STORE = 'furniture-kernel-history';
 
       const $ = (id) => document.getElementById(id);
@@ -302,11 +303,27 @@
         $('plan').addEventListener('pointerdown', (e) => {
           const cor = e.target.closest('circle[data-corner]');
           if (cor) { cornerDrag = Number(cor.getAttribute('data-corner')); return; }
+          const op = e.target.closest('line[data-opening]');
+          if (op) { openingDrag = op.getAttribute('data-opening'); return; }
           const poly = e.target.closest('polygon[data-module]');
           if (!poly) return;
           dragId = poly.getAttribute('data-module');
         });
         window.addEventListener('pointerup', (e) => {
+          if (openingDrag !== null) {
+            const id = openingDrag; openingDrag = null;
+            const p = screenToWorld(e);
+            if (!p) return;
+            const o = definition.room.openings.find((x) => x.id === id);
+            const w = definition.room.walls.find((x) => x.id === o?.wallId);
+            if (!o || !w) return;
+            const len = Math.hypot(w.end.x - w.start.x, w.end.y - w.start.y);
+            const dx = (w.end.x - w.start.x) / len, dy = (w.end.y - w.start.y) / len;
+            const t = (p.x - w.start.x) * dx + (p.y - w.start.y) * dy;
+            const offset = Math.max(0, Math.min(len - o.width, t - o.width / 2));
+            dispatch({ type: 'moveOpening', openingId: id, offset });
+            return;
+          }
           if (cornerDrag !== null) {
             const idx = cornerDrag; cornerDrag = null;
             const p = screenToWorld(e);

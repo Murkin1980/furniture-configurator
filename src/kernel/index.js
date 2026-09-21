@@ -26,6 +26,7 @@ export * from './model/editor.js';
 export * from './model/history.js';
 export * from './model/drop.js';
 export * from './model/roomedit.js';
+export * from './model/openings.js';
 export * from './placement/operations.js';
 
 export * from './view/planSvg.js';

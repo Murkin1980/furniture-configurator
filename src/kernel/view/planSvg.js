@@ -85,7 +85,7 @@ export function planSvg(bundle, opts = {}) {
   // Openings, drawn before the walls so the wall line reads on top.
   for (const o of room.openings) {
     out.push(
-      `<line class="op" x1="${fmt(sx(o.start.x))}" y1="${fmt(sy(o.start.y))}" ` +
+      `<line class="op" data-opening="${esc(o.id)}" x1="${fmt(sx(o.start.x))}" y1="${fmt(sy(o.start.y))}" ` +
         `x2="${fmt(sx(o.end.x))}" y2="${fmt(sy(o.end.y))}"/>`,
     );
   }

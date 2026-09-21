@@ -16,6 +16,9 @@
  *   { type:'move',       moduleId, wallId, index? }        // between runs
  *   { type:'reorder',    moduleId, index }                 // within its run
  *   { type:'moveCorner', cornerIndex, point, snap90? }     // room-shape edit (CP-08)
+ *   { type:'moveOpening', openingId, offset }              // slide door/window (CP-10)
+ *   { type:'resizeOpening', openingId, width }             // (CP-10)
+ *   { type:'addOpening', opening:{wallId,kind?,offset?,width?...} } / { type:'removeOpening', openingId }
  *
  * Invalid actions throw the descriptive errors raised by the underlying API
  * (CP-02 section 5), so the UI can surface them verbatim.
@@ -24,6 +27,7 @@
 import { placeModule, removeModule, reorderModule, moveModule } from '../placement/operations.js';
 import { updateModule, updateWall } from './project.js';
 import { moveCorner } from './roomedit.js';
+import { moveOpening, resizeOpening, addOpening, removeOpening } from './openings.js';
 
 /** Collision-free generated id (`u1`, `u2`, ...) when the action has none. */
 export function nextModuleId(definition) {
@@ -66,6 +70,14 @@ export function applyAction(definition, action) {
       return reorderModule(definition, action.moduleId, action.index).definition;
     case 'moveCorner':
       return moveCorner(definition, action.cornerIndex, action.point, { snap90: !!action.snap90 });
+    case 'moveOpening':
+      return moveOpening(definition, action.openingId, action.offset);
+    case 'resizeOpening':
+      return resizeOpening(definition, action.openingId, action.width);
+    case 'addOpening':
+      return addOpening(definition, action.opening);
+    case 'removeOpening':
+      return removeOpening(definition, action.openingId);
     default:
       throw new Error(`applyAction: unknown action type "${action?.type}"`);
   }
