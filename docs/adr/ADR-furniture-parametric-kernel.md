@@ -170,3 +170,13 @@ The last canonical-editing surface (doors/windows) joins the journal:
 - Placement packs around blocked intervals, so sliding a door re-packs the run automatically
   (multirun fixture: door 1200->0 shifts wall-a offsets 0/600/2000 -> 800/1400/2000).
 - Verified by `cp10-openings.test.js`; 128 tests green.
+
+## CP-11 addendum (ergonomics checklist)
+
+GrabSketch's numeric checklist becomes derived validation readouts:
+
+- `validation/checklist.js` checklist(bundle) returns pass/fail/na items (fits-room, no-gaps,
+  base-depth>=560, top-depth 300-400, corner-facade>=500 for declared corner cabinets, worktop/sink
+  'na' when unmodelled). CHECKLIST_LIMITS exports the thresholds.
+- Read-only: the checklist reports; it never mutates. Unmodelled rules are 'na', not invented.
+- Verified by `cp11-checklist.test.js`; 134 tests green.

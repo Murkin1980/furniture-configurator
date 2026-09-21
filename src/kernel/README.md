@@ -32,7 +32,7 @@ src/kernel/
   placement/  layout, corner reservations, collision, occupancy; operations.js = CP-02 API
   bom/        parts -> BOM -> cutting summary (lower-bound sheet estimate only)
   validation/ codes (OVERLAP, OUT_OF_WALL, CANNOT_PLACE, CORNER_CONFLICT, RUN_GAP,
-              OPENING_BLOCKED, UNKNOWN_WALL)
+              OPENING_BLOCKED, UNKNOWN_WALL); checklist.js = CP-11 derived ergonomics readouts
   model/      canonical model + buildProject/update*; runs.js = canonical runs normalisation;
               editor.js = CP-04 applyAction dispatcher; drop.js = CP-07 pointer-drop -> move action;
               roomedit.js = CP-08 drag corners (Shift-snap 90 deg);
@@ -150,6 +150,12 @@ model/openings.js slides/resizes/adds/removes doors & windows, rewriting only wa
 opening actions so they join the journal. Because placement packs around blocked intervals, sliding
 a door makes the affected run re-pack automatically (verified on the multirun fixture).
 
+## Checklist (CP-11)
+
+validation/checklist.js derives GrabSketch-style ergonomics readouts from the bundle: fits-room,
+no-gaps, base-depth >=560, top-depth 300-400, corner-facade >=500 (declared corner cabinets only),
+worktop/sink as 'na' when unmodelled. Read-only; the preview renders pass/fail/na.
+
 ## Export (CP-05)
 
 view/glb.js exports binary glTF 2.0 straight from sceneGraph(): one TRS node per box over a shared
@@ -166,7 +172,7 @@ cutting output; the CSV half ships since CP-01. kernel-preview.html offers "down
 ## Run it
 
 ```
-npm test                                   # node:test, 128 tests, zero deps
+npm test                                   # node:test, 134 tests, zero deps
 node src/kernel/tools/serve.js 8080        # static server
 # open http://127.0.0.1:8080/kernel-preview.html   (debug preview)
 # open http://127.0.0.1:8080/kernel-3d.html        (derived 3D view, CP-03)

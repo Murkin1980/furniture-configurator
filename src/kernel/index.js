@@ -19,6 +19,7 @@ export * from './furniture/moduleGeometry.js';
 export * from './placement/placement.js';
 export * from './bom/bom.js';
 export * from './validation/validate.js';
+export * from './validation/checklist.js';
 
 export * from './model/project.js';
 export * from './model/runs.js';
