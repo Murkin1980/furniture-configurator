@@ -158,8 +158,9 @@ export function planSvg(bundle, opts = {}) {
 
   if (showCorners) {
     // Prefer the derived corners from buildProject(): those carry occupancy.
-    for (const c of bundle.corners ?? room.corners) {
-      out.push(`<circle class="cor" cx="${fmt(sx(c.point.x))}" cy="${fmt(sy(c.point.y))}" r="9"/>`);
+    const corners = bundle.corners ?? room.corners;
+    corners.forEach((c, ci) => {
+      out.push(`<circle class="cor" data-corner="${ci}" cx="${fmt(sx(c.point.x))}" cy="${fmt(sy(c.point.y))}" r="9"/>`);
       const lx = c.point.x + c.bisector.x * 150;
       const ly = c.point.y + c.bisector.y * 150;
       const owner = c.occupancy?.moduleId ?? 'free';
@@ -167,7 +168,7 @@ export function planSvg(bundle, opts = {}) {
         `<text class="dim" x="${fmt(sx(lx))}" y="${fmt(sy(ly))}" text-anchor="middle">` +
           `${fmt(c.turnDeg)}° · ${esc(owner)}</text>`,
       );
-    }
+    });
   }
 
   out.push('</svg>');

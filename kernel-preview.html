@@ -79,7 +79,7 @@
       </section>
 
       <section>
-        <h2>Plan (walls, calculated corners, module footprints) — drag a module to move it (CP-07)</h2>
+        <h2>Plan — drag a module to move it (CP-07); drag a red corner to reshape the room, Shift = 90° (CP-08)</h2>
         <div id="plan"></div>
       </section>
 
@@ -110,6 +110,7 @@
         updateModule,
         applyAction,
         dropAction,
+        moveCorner,
         cuttingPdf,
         planSvg,
         isoSvg,
@@ -118,6 +119,7 @@
       let definition = null;
       let lastBundle = null;
       let dragId = null;
+      let cornerDrag = null;
 
       const $ = (id) => document.getElementById(id);
       const fmt = (n) => (Number.isInteger(n) ? String(n) : n.toFixed(2));
@@ -256,15 +258,30 @@
 
       function initDrag() {
         $('plan').addEventListener('pointerdown', (e) => {
+          const cor = e.target.closest('circle[data-corner]');
+          if (cor) { cornerDrag = Number(cor.getAttribute('data-corner')); return; }
           const poly = e.target.closest('polygon[data-module]');
           if (!poly) return;
           dragId = poly.getAttribute('data-module');
         });
         window.addEventListener('pointerup', (e) => {
+          if (cornerDrag !== null) {
+            const idx = cornerDrag; cornerDrag = null;
+            const p = screenToWorld(e);
+            if (!p) return;
+            try {
+              definition = moveCorner(definition, idx, p, { snap90: e.shiftKey });
+              $('actionError').textContent = '';
+              render();
+            } catch (err) {
+              $('actionError').textContent = err.message;
+            }
+            return;
+          }
           if (!dragId) return;
           const id = dragId; dragId = null;
-          const p = screenToWorld(e);
-          if (p) dispatch(dropAction(definition, id, p));
+          const q = screenToWorld(e);
+          if (q) dispatch(dropAction(definition, id, q));
         });
       }
 

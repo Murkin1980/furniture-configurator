@@ -34,7 +34,8 @@ src/kernel/
   validation/ codes (OVERLAP, OUT_OF_WALL, CANNOT_PLACE, CORNER_CONFLICT, RUN_GAP,
               OPENING_BLOCKED, UNKNOWN_WALL)
   model/      canonical model + buildProject/update*; runs.js = canonical runs normalisation;
-              editor.js = CP-04 applyAction dispatcher; drop.js = CP-07 pointer-drop -> move action
+              editor.js = CP-04 applyAction dispatcher; drop.js = CP-07 pointer-drop -> move action;
+              roomedit.js = CP-08 drag corners (Shift-snap 90 deg)
   view/       planSvg.js (plan), isoSvg.js (isometric wireframe), scene3d.js (3D scene data,
               CP-03; renderer-free), glb.js (binary glTF export, CP-05),
               cuttingPdf.js (cutting-list PDF, CP-06) + vendor/three.module.min.js (r160, for
@@ -125,6 +126,13 @@ onto the closest wall; dropAction() returns {type:'move', wallId, index} with th
 taken from run-mates' derived wallOffsets. The preview's pointer layer only converts screen->world
 and dispatches through applyAction(); planSvg polygons carry data-module for hit-testing.
 
+## Room-shape editing (CP-08)
+
+model/roomedit.js moveCorner() drags the shared endpoint of two consecutive walls; with snap90 the
+pointer is projected onto the Thales circle over the fixed neighbours so the walls meet at exactly
+90 deg (verified against buildRoom's derived turnDeg). Corners, angles, reservations and placement
+all re-derive afterwards. planSvg corner dots carry data-corner for hit-testing.
+
 ## Export (CP-05)
 
 view/glb.js exports binary glTF 2.0 straight from sceneGraph(): one TRS node per box over a shared
@@ -141,7 +149,7 @@ cutting output; the CSV half ships since CP-01. kernel-preview.html offers "down
 ## Run it
 
 ```
-npm test                                   # node:test, 112 tests, zero deps
+npm test                                   # node:test, 116 tests, zero deps
 node src/kernel/tools/serve.js 8080        # static server
 # open http://127.0.0.1:8080/kernel-preview.html   (debug preview)
 # open http://127.0.0.1:8080/kernel-3d.html        (derived 3D view, CP-03)

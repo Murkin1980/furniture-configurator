@@ -136,3 +136,14 @@ into the view:
 - The preview's pointer handlers only do screen->world conversion and call applyAction(); the
   kernel remains the single owner of placement.
 - Verified by `cp07-drag.test.js` (projection, cross-wall insertion, same-wall reorder, throws).
+
+## CP-08 addendum (room-shape editing, Shift-snap 90°)
+
+The room itself becomes editable while staying canonical:
+
+- `model/roomedit.js` moveCorner() rewrites only the two walls' shared endpoint. With snap90 the
+  pointer is projected onto the Thales circle over the fixed neighbour endpoints, guaranteeing a
+  right angle; buildRoom's derived turnDeg then reads exactly 90 (test-verified), so the snap is
+  proven by the kernel's own corner math, not asserted in the editor.
+- Editing stores no derived geometry; placement/reservations rebuild via buildProject().
+- planSvg corner dots carry data-corner; the preview drags corners (Shift = snap) and modules.
