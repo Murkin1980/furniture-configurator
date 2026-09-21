@@ -131,7 +131,7 @@ export function planSvg(bundle, opts = {}) {
     const fp = footprints.get(m.id);
     const pts = fp.map((p) => `${fmt(sx(p.x))},${fmt(sy(p.y))}`).join(' ');
     const cls = errorIds.has(m.id) ? 'm err' : highlightModuleId === m.id ? 'm hi' : 'm';
-    out.push(`<polygon class="${cls}" points="${pts}"><title>${esc(m.id)} ${fmt(m.width)} mm</title></polygon>`);
+    out.push(`<polygon class="${cls}" data-module="${esc(m.id)}" points="${pts}"><title>${esc(m.id)} ${fmt(m.width)} mm</title></polygon>`);
   }
 
   if (showDimensions) {

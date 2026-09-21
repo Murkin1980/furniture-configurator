@@ -34,7 +34,7 @@ src/kernel/
   validation/ codes (OVERLAP, OUT_OF_WALL, CANNOT_PLACE, CORNER_CONFLICT, RUN_GAP,
               OPENING_BLOCKED, UNKNOWN_WALL)
   model/      canonical model + buildProject/update*; runs.js = canonical runs normalisation;
-              editor.js = CP-04 applyAction dispatcher over the placement API
+              editor.js = CP-04 applyAction dispatcher; drop.js = CP-07 pointer-drop -> move action
   view/       planSvg.js (plan), isoSvg.js (isometric wireframe), scene3d.js (3D scene data,
               CP-03; renderer-free), glb.js (binary glTF export, CP-05),
               cuttingPdf.js (cutting-list PDF, CP-06) + vendor/three.module.min.js (r160, for
@@ -118,6 +118,13 @@ resizeWall, move (between runs), reorder - each dispatched through the CP-02 pla
 update*. The debug preview's edit panel calls only applyAction; invalid actions throw descriptive
 errors that the panel surfaces. The UI never computes placement.
 
+## Drag between runs (CP-07)
+
+model/drop.js maps a plan-view drop to a canonical action: nearestWall() projects the world point
+onto the closest wall; dropAction() returns {type:'move', wallId, index} with the insertion index
+taken from run-mates' derived wallOffsets. The preview's pointer layer only converts screen->world
+and dispatches through applyAction(); planSvg polygons carry data-module for hit-testing.
+
 ## Export (CP-05)
 
 view/glb.js exports binary glTF 2.0 straight from sceneGraph(): one TRS node per box over a shared
@@ -134,7 +141,7 @@ cutting output; the CSV half ships since CP-01. kernel-preview.html offers "down
 ## Run it
 
 ```
-npm test                                   # node:test, 108 tests, zero deps
+npm test                                   # node:test, 112 tests, zero deps
 node src/kernel/tools/serve.js 8080        # static server
 # open http://127.0.0.1:8080/kernel-preview.html   (debug preview)
 # open http://127.0.0.1:8080/kernel-3d.html        (derived 3D view, CP-03)

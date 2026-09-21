@@ -23,6 +23,7 @@ export * from './validation/validate.js';
 export * from './model/project.js';
 export * from './model/runs.js';
 export * from './model/editor.js';
+export * from './model/drop.js';
 export * from './placement/operations.js';
 
 export * from './view/planSvg.js';

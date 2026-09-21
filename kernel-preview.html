@@ -79,7 +79,7 @@
       </section>
 
       <section>
-        <h2>Plan (walls, calculated corners, module footprints)</h2>
+        <h2>Plan (walls, calculated corners, module footprints) — drag a module to move it (CP-07)</h2>
         <div id="plan"></div>
       </section>
 
@@ -109,18 +109,22 @@
         buildProject,
         updateModule,
         applyAction,
+        dropAction,
         cuttingPdf,
         planSvg,
         isoSvg,
       } from './src/kernel/index.js';
 
       let definition = null;
+      let lastBundle = null;
+      let dragId = null;
 
       const $ = (id) => document.getElementById(id);
       const fmt = (n) => (Number.isInteger(n) ? String(n) : n.toFixed(2));
 
       function render() {
         const bundle = buildProject(definition);
+        lastBundle = bundle;
 
         $('plan').innerHTML = planSvg(bundle, { highlightModuleId: $('module').value });
         $('iso').innerHTML = isoSvg(bundle, { highlightModuleId: $('module').value });
@@ -234,6 +238,36 @@
         dispatch({ type: 'reorder', moduleId: id, index: to });
       }
 
+      // CP-07: drag a module on the plan to move it between runs. The pointer
+      // layer only converts screen -> world; dropAction() decides the edit.
+      function screenToWorld(e) {
+        const svg = $('plan').querySelector('svg');
+        if (!svg || !definition) return null;
+        const rect = svg.getBoundingClientRect();
+        const vb = svg.viewBox.baseVal;
+        const xs = []; const ys = [];
+        for (const w of definition.room.walls) { xs.push(w.start.x, w.end.x); ys.push(w.start.y, w.end.y); }
+        const minX = Math.min(...xs), maxY = Math.max(...ys);
+        const margin = 120; // planSvg default
+        const sx = ((e.clientX - rect.left) / rect.width) * vb.width;
+        const sy = ((e.clientY - rect.top) / rect.height) * vb.height;
+        return { x: sx - margin + minX, y: maxY + margin - sy };
+      }
+
+      function initDrag() {
+        $('plan').addEventListener('pointerdown', (e) => {
+          const poly = e.target.closest('polygon[data-module]');
+          if (!poly) return;
+          dragId = poly.getAttribute('data-module');
+        });
+        window.addEventListener('pointerup', (e) => {
+          if (!dragId) return;
+          const id = dragId; dragId = null;
+          const p = screenToWorld(e);
+          if (p) dispatch(dropAction(definition, id, p));
+        });
+      }
+
       async function loadFixture(path) {
         definition = await (await fetch(path)).json();
         refreshModuleSelect();
@@ -268,6 +302,7 @@
           dispatch({ type: 'move', moduleId: $('module').value, wallId: $('wall').value }));
         $('left').addEventListener('click', () => reorderDelta(-1));
         $('right').addEventListener('click', () => reorderDelta(1));
+        initDrag();
         $('pdf').addEventListener('click', () => {
           const bytes = cuttingPdf(buildProject(definition), { projectId: definition.id });
           const blob = new Blob([bytes], { type: 'application/pdf' });

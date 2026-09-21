@@ -124,3 +124,15 @@ The manufacturing paper trail completes with a deterministic PDF 1.4 export:
   no reliable Cyrillic), no dates -> byte-deterministic like other evidence.
 - Verified in-suite (container/xref/table/determinism) and out-of-band by pdfjs-dist text
   extraction of the committed artifact.
+
+## CP-07 addendum (pointer drag between runs)
+
+Drag-and-drop completes the CP-02 promise of a UI-sufficient placement API without moving logic
+into the view:
+
+- `model/drop.js` nearestWall() projects a world point onto the nearest wall segment (clamped);
+  dropAction() converts the drop into {type:'move', wallId, index} using run-mates' derived
+  wallOffsets for the insertion index.
+- The preview's pointer handlers only do screen->world conversion and call applyAction(); the
+  kernel remains the single owner of placement.
+- Verified by `cp07-drag.test.js` (projection, cross-wall insertion, same-wall reorder, throws).
