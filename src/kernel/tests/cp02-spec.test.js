@@ -191,6 +191,19 @@ test('cp02 spec: runs(moduleIds) and module.wallId definitions agree', () => {
   assert.equal(JSON.stringify(fromRuns.modules), JSON.stringify(fromWalls.modules));
 });
 
+// --- every shipped fixture builds clean ---------------------------------
+const FIXTURES = ['kitchen-2500x1500', 'kitchen-multirun', 'kitchen-straight', 'kitchen-p'];
+test('cp02 spec: all shipped fixtures build error-free and overlap-free', () => {
+  for (const name of FIXTURES) {
+    const def = JSON.parse(
+      readFileSync(new URL(`../../../fixtures/${name}/project.json`, import.meta.url), 'utf8'),
+    );
+    const b = buildProject(def);
+    assert.deepEqual(b.issues.filter((i) => i.severity === 'error'), [], `${name} has errors`);
+    assert.deepEqual(findOverlaps(b.room, b.modules), [], `${name} has overlaps`);
+  }
+});
+
 // --- normalization structural validation --------------------------------
 test('cp02 spec: structural run errors are rejected', () => {
   assert.throws(

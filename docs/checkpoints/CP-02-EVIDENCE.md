@@ -41,12 +41,15 @@ CP-01 fixture still passes:       PASS
 legacy configurator unchanged:    PASS (legacy VM tests still pass; index.html byte-identical)
 
 TESTS
-node --test: 85 tests, 85 pass, 0 fail
-(CP-01 suites unchanged + cp02-placement.test.js + cp02-spec.test.js)
+node --test: 86 tests, 86 pass, 0 fail
+(CP-01 suites unchanged + cp02-placement.test.js + cp02-spec.test.js; every shipped fixture is
+loaded and asserted error-free/overlap-free by the suite)
 
 EVIDENCE ARTIFACTS (regenerate: node src/kernel/tools/render-evidence.js)
 docs/checkpoints/evidence/plan-kitchen-2500x1500.svg   (corner reservations hatched)
 docs/checkpoints/evidence/plan-kitchen-multirun.svg    (two runs; run routes around the door)
+docs/checkpoints/evidence/plan-kitchen-straight.svg    (straight run, offsets 0/800/1600)
+docs/checkpoints/evidence/plan-kitchen-p.svg           (two parallel runs, no overlap)
 docs/checkpoints/evidence/derivation-report.json       (corners/reservations/occupancy/BOM)
 
 KNOWN LIMITATIONS / DEFERRED

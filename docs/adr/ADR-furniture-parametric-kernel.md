@@ -57,17 +57,23 @@ added (deep-change gate not triggered).
 - Corner reservations arbitrate L-corners via line intersection; a run packs from one end and
   leaves the far end free so the corner-owning run can close on the corner.
 
-## CP-02 addendum (continuation)
+## CP-02 addendum (official spec: docs/checkpoints/CP-02-SPEC.md)
 
-Multi-run + opening-aware placement were added without new dependencies and without touching the
-one-way flow:
+Multi-wall placement was added without new dependencies and without touching the one-way flow:
 
-- Openings and the pack-direction corner stand-off are treated as blocked intervals; auto modules
-  route around them (`nextFromLow` / `nextFromHigh`).
-- `runs[].startPoint` ('start' | 'end') selects fill direction, mirroring GrabSketch's confirmed
-  "Starting point" option.
-- `CANNOT_PLACE` replaces silent overflow when a run cannot fit.
+- Canonical `runs` = `{ wallId, startPoint, moduleIds }` (model/runs.js). Two equivalent definition
+  styles normalise to runs; normalisation never computes coordinates.
+- Placement API (placement/operations.js): `placeModule`, `removeModule`, `reorderModule`,
+  `moveModule` (between runs), `rebuildProject` — each edits only the canonical model and returns
+  `{ definition, derived }`. Invalid ops throw descriptive errors.
+- Auto modules pack sequentially, routing around openings and the pack-direction corner stand-off;
+  `startPoint` ('start' | 'end') mirrors GrabSketch's confirmed "Starting point" option.
+- Corner reservations and usable wall length are derived from module depth (no hard-coded 560);
+  `CORNER_CONFLICT` flags an explicit module placed inside a reserved zone; `CANNOT_PLACE` replaces
+  silent overflow.
+- Layouts proven by fixtures/tests: straight, L (CP-01), P, overflow, corner conflict,
+  move-between-runs, room resize, module resize (`cp02-spec.test.js`, `cp02-placement.test.js`).
 - Three.js remains deferred (CDN egress-blocked in the sandbox; zero-dependency ADR). The kernel
-  stays renderer-agnostic, so a WebGL view can be attached later.
-- Verified by `src/kernel/tests/cp02-placement.test.js` and
-  `docs/checkpoints/evidence/plan-kitchen-multirun.svg`.
+  stays renderer-agnostic, so a WebGL view can be attached later as a derived renderer.
+- Evidence: `docs/checkpoints/CP-02-EVIDENCE.md` plus
+  `docs/checkpoints/evidence/plan-kitchen-{straight,p,multirun,2500x1500}.svg`.

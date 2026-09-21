@@ -34,6 +34,11 @@ function rebuild(def) {
   return { definition: def, derived: buildProject(def) };
 }
 
+/** Rebuild placement deterministically from a canonical definition (CP-02 §2). */
+export function rebuildProject(def) {
+  return rebuild(def);
+}
+
 /** Add a module to a run (appended unless `index` given). */
 export function placeModule(def, module, { wallId, index } = {}) {
   if (!module?.id) throw new Error('placeModule: module needs an id');

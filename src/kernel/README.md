@@ -29,10 +29,11 @@ src/kernel/
   geometry/   vec2, line/polygon intersection, SAT overlap, wall math (all derived)
   room/       buildRoom: walls -> corners (line intersection), inward normals, openings
   furniture/  cabinet.js (parametric parts + boxes), moduleGeometry.js (offset -> world)
-  placement/  layout, corner reservations, collision, occupancy
+  placement/  layout, corner reservations, collision, occupancy; operations.js = CP-02 API
   bom/        parts -> BOM -> cutting summary (lower-bound sheet estimate only)
-  validation/ issue codes (OVERLAP, OUT_OF_WALL, RUN_GAP, OPENING_BLOCKED, UNKNOWN_WALL)
-  model/      canonical model + buildProject/updateModule/updateWall
+  validation/ codes (OVERLAP, OUT_OF_WALL, CANNOT_PLACE, CORNER_CONFLICT, RUN_GAP,
+              OPENING_BLOCKED, UNKNOWN_WALL)
+  model/      canonical model + buildProject/update*; runs.js = canonical runs normalisation
   view/       planSvg.js (plan), isoSvg.js (isometric wireframe)
   tools/      serve.js (static server), render-evidence.js (artifact generator)
   tests/      node:test suites incl. the 10-point fixture acceptance
@@ -50,11 +51,15 @@ Project {
                   sillHeight, headHeight } ],                       // wall-relative, not world
   },
   modules: [ { id, type:'base-cabinet', width, height, depth,
-               wallId, wallOffset?, autoOffset?, parameters? } ],   // wall-relative placement
-  runs:  [ { wallId, startPoint:'start'|'end' } ],                   // optional run fill direction (CP-02)
+               wallId?, wallOffset?, autoOffset?, parameters? } ],  // dims (wall via run or wallId)
+  runs:  [ { wallId, startPoint:'start'|'end', moduleIds?:[ids] } ], // canonical ordered runs (CP-02)
   sheet: { sheetWidth, sheetHeight, kerf },                          // for the lower-bound estimate
 }
 ```
+
+Two equivalent definition styles are normalised to runs (model/runs.js): CP-02 style gives
+`runs[].moduleIds` explicitly (modules carry only dimensions); CP-01 style lets modules carry
+`wallId` and array order (runs derived by grouping). Normalisation never computes coordinates.
 
 Everything else is derived (never authored): wall direction/length/angle/inwardNormal, corner
 points (line intersection of wall axes), module world transforms/footprints, parts, BOM lines,
@@ -79,11 +84,26 @@ the BOM read the same numbers.
   with this wall's cabinet strip (computed via convex clipping). This is what makes an L-corner
   non-colliding. The far end of a run is left free so the corner-owning run can close on the corner.
 - A module that cannot fit is flagged `placementError: 'no-space'` and reported as `CANNOT_PLACE`.
+- Usable wall length = wall length minus the derived corner reservations (`occupancy.usable`).
+
+## Placement API (CP-02 §2)
+
+placement/operations.js exposes deterministic mutations for a future drag-and-drop UI; each edits
+only the canonical model and returns `{ definition, derived }` rebuilt by buildProject():
+
+- `placeModule(def, module, { wallId, index })` - add to a run;
+- `removeModule(def, id)`;
+- `reorderModule(def, id, newIndex)` - move within its run;
+- `moveModule(def, id, { wallId, index })` - move between runs;
+- `rebuildProject(def)` - re-derive placement deterministically.
+
+Invalid operations (unknown wall/module, out-of-range index) throw descriptive errors. The UI must
+not own placement logic.
 
 ## Run it
 
 ```
-npm test                                   # node:test, 68 tests, zero deps
+npm test                                   # node:test, 86 tests, zero deps
 node src/kernel/tools/serve.js 8080        # static server
 # open http://127.0.0.1:8080/kernel-preview.html   (debug preview)
 # open http://127.0.0.1:8080/                    (existing configurator)

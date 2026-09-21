@@ -1,0 +1,63 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 4240 2240" width="100%" role="img" aria-label="Plan view">
+<style>
+      .w{stroke:#1f2937;stroke-width:14;fill:none;stroke-linecap:square}
+      .g{stroke:#e5e7eb;stroke-width:1}
+      .m{fill:#60a5fa;fill-opacity:.28;stroke:#1d4ed8;stroke-width:2}
+      .m.hi{fill:#f59e0b;fill-opacity:.45;stroke:#b45309;stroke-width:3}
+      .m.err{fill:#f87171;fill-opacity:.5;stroke:#b91c1c;stroke-width:3}
+      .res{fill:#ef4444;fill-opacity:.12;stroke:#dc2626;stroke-width:2;stroke-dasharray:6 4}
+      .lbl{font:600 26px ui-monospace,monospace;fill:#111827}
+      .dim{font:500 24px ui-monospace,monospace;fill:#6b7280}
+      .cor{fill:#dc2626}
+      .op{stroke:#0ea5e9;stroke-width:6;fill:none}
+    </style>
+<line class="g" x1="120" y1="2120" x2="120" y2="120"/>
+<line class="g" x1="370" y1="2120" x2="370" y2="120"/>
+<line class="g" x1="620" y1="2120" x2="620" y2="120"/>
+<line class="g" x1="870" y1="2120" x2="870" y2="120"/>
+<line class="g" x1="1120" y1="2120" x2="1120" y2="120"/>
+<line class="g" x1="1370" y1="2120" x2="1370" y2="120"/>
+<line class="g" x1="1620" y1="2120" x2="1620" y2="120"/>
+<line class="g" x1="1870" y1="2120" x2="1870" y2="120"/>
+<line class="g" x1="2120" y1="2120" x2="2120" y2="120"/>
+<line class="g" x1="2370" y1="2120" x2="2370" y2="120"/>
+<line class="g" x1="2620" y1="2120" x2="2620" y2="120"/>
+<line class="g" x1="2870" y1="2120" x2="2870" y2="120"/>
+<line class="g" x1="3120" y1="2120" x2="3120" y2="120"/>
+<line class="g" x1="3370" y1="2120" x2="3370" y2="120"/>
+<line class="g" x1="3620" y1="2120" x2="3620" y2="120"/>
+<line class="g" x1="3870" y1="2120" x2="3870" y2="120"/>
+<line class="g" x1="4120" y1="2120" x2="4120" y2="120"/>
+<line class="g" x1="120" y1="2120" x2="4120" y2="2120"/>
+<line class="g" x1="120" y1="1870" x2="4120" y2="1870"/>
+<line class="g" x1="120" y1="1620" x2="4120" y2="1620"/>
+<line class="g" x1="120" y1="1370" x2="4120" y2="1370"/>
+<line class="g" x1="120" y1="1120" x2="4120" y2="1120"/>
+<line class="g" x1="120" y1="870" x2="4120" y2="870"/>
+<line class="g" x1="120" y1="620" x2="4120" y2="620"/>
+<line class="g" x1="120" y1="370" x2="4120" y2="370"/>
+<line class="g" x1="120" y1="120" x2="4120" y2="120"/>
+<line class="w" x1="120" y1="2120" x2="4120" y2="2120"/>
+<line class="w" x1="4120" y1="2120" x2="4120" y2="120"/>
+<line class="w" x1="4120" y1="120" x2="120" y2="120"/>
+<line class="w" x1="120" y1="120" x2="120" y2="2120"/>
+<polygon class="res" points="120,1560 120,2120 680,2120 680,1560"><title>corner reservation wall-d</title></polygon>
+<polygon class="m" points="120,2120 920,2120 920,1560 120,1560"><title>s1 800 mm</title></polygon>
+<polygon class="m" points="920,2120 1720,2120 1720,1560 920,1560"><title>s2 800 mm</title></polygon>
+<polygon class="m" points="1720,2120 2520,2120 2520,1560 1720,1560"><title>s3 800 mm</title></polygon>
+<text class="dim" x="2120" y="2210" text-anchor="middle">wall-a 4000 @ 0°</text>
+<text class="dim" x="4210" y="1120" text-anchor="middle">wall-b 2000 @ 90°</text>
+<text class="dim" x="2120" y="30" text-anchor="middle">wall-c 4000 @ 180°</text>
+<text class="dim" x="30" y="1120" text-anchor="middle">wall-d 2000 @ -90°</text>
+<text class="lbl" x="520" y="1840" text-anchor="middle">s1<tspan class="dim" x="520" dy="28">800</tspan></text>
+<text class="lbl" x="1320" y="1840" text-anchor="middle">s2<tspan class="dim" x="1320" dy="28">800</tspan></text>
+<text class="lbl" x="2120" y="1840" text-anchor="middle">s3<tspan class="dim" x="2120" dy="28">800</tspan></text>
+<circle class="cor" cx="4120" cy="2120" r="9"/>
+<text class="dim" x="4013.93" y="2013.93" text-anchor="middle">90° · free</text>
+<circle class="cor" cx="4120" cy="120" r="9"/>
+<text class="dim" x="4013.93" y="226.07" text-anchor="middle">90° · free</text>
+<circle class="cor" cx="120" cy="120" r="9"/>
+<text class="dim" x="226.07" y="226.07" text-anchor="middle">90° · free</text>
+<circle class="cor" cx="120" cy="2120" r="9"/>
+<text class="dim" x="226.07" y="2013.93" text-anchor="middle">90° · s1</text>
+</svg>
