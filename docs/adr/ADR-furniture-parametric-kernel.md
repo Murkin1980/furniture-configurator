@@ -147,3 +147,15 @@ The room itself becomes editable while staying canonical:
   proven by the kernel's own corner math, not asserted in the editor.
 - Editing stores no derived geometry; placement/reservations rebuild via buildProject().
 - planSvg corner dots carry data-corner; the preview drags corners (Shift = snap) and modules.
+
+## CP-09 addendum (undo/redo + persistence as action-log replay)
+
+The edit story becomes durable and reversible without ever storing derived state:
+
+- `model/history.js` History = { base, actions, redo }; current() replays the journal through
+  applyActions(). undo/redo pop/push the journal; serialize/deserialize make the journal the whole
+  project document (preview persists to localStorage).
+- Every UI edit is a single action (resize/add/remove/move/reorder/drag/moveCorner), so the entire
+  editing surface is undoable and replayable; applyAction gained {type:'moveCorner'}.
+- Verified by `cp09-history.test.js` (undo/redo, redo-clear, empty throws, replayable corner edit,
+  round-trip persistence, validate-before-record). 122 tests green.

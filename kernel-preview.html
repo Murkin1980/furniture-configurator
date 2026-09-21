@@ -74,6 +74,10 @@
           <button id="moveTo" type="button">move selected → wall</button>
           <button id="left" type="button">◀ reorder</button>
           <button id="right" type="button">reorder ▶</button>
+          <button id="undo" type="button">undo</button>
+          <button id="redo" type="button">redo</button>
+          <button id="save" type="button">save</button>
+          <button id="load" type="button">load</button>
           <span id="actionError" style="color:#fca5a5"></span>
         </div>
       </section>
@@ -112,14 +116,23 @@
         dropAction,
         moveCorner,
         cuttingPdf,
+        createHistory,
+        pushAction,
+        current,
+        undo,
+        redo,
+        serializeHistory,
+        deserializeHistory,
         planSvg,
         isoSvg,
       } from './src/kernel/index.js';
 
       let definition = null;
+      let history = null;
       let lastBundle = null;
       let dragId = null;
       let cornerDrag = null;
+      const STORE = 'furniture-kernel-history';
 
       const $ = (id) => document.getElementById(id);
       const fmt = (n) => (Number.isInteger(n) ? String(n) : n.toFixed(2));
@@ -198,10 +211,9 @@
       }
 
       function applyWidth(value) {
-        definition = updateModule(definition, $('module').value, { width: value }).definition;
+        dispatch({ type: 'resize', moduleId: $('module').value, width: value });
         $('widthRange').value = value;
         $('widthNum').value = value;
-        render();
       }
 
       // CP-04 editing: every button dispatches an action through applyAction();
@@ -219,6 +231,7 @@
       function dispatch(action) {
         try {
           definition = applyAction(definition, action);
+          history = pushAction(history, action);
           $('actionError').textContent = '';
         } catch (e) {
           $('actionError').textContent = e.message;
@@ -227,6 +240,35 @@
         refreshModuleSelect();
         syncControls();
         render();
+      }
+
+      // CP-09: undo/redo/persistence are pure journal operations.
+      function replay(h) {
+        history = h;
+        definition = current(history);
+        refreshModuleSelect();
+        syncControls();
+        render();
+      }
+      function doUndo() {
+        try { replay(undo(history)); $('actionError').textContent = ''; }
+        catch (e) { $('actionError').textContent = e.message; }
+      }
+      function doRedo() {
+        try { replay(redo(history)); $('actionError').textContent = ''; }
+        catch (e) { $('actionError').textContent = e.message; }
+      }
+      function doSave() {
+        try { localStorage.setItem(STORE, serializeHistory(history)); $('actionError').textContent = 'saved'; }
+        catch (e) { $('actionError').textContent = e.message; }
+      }
+      function doLoad() {
+        try {
+          const raw = localStorage.getItem(STORE);
+          if (!raw) { $('actionError').textContent = 'nothing saved'; return; }
+          replay(deserializeHistory(raw));
+          $('actionError').textContent = 'loaded';
+        } catch (e) { $('actionError').textContent = e.message; }
       }
 
       function reorderDelta(delta) {
@@ -269,13 +311,7 @@
             const idx = cornerDrag; cornerDrag = null;
             const p = screenToWorld(e);
             if (!p) return;
-            try {
-              definition = moveCorner(definition, idx, p, { snap90: e.shiftKey });
-              $('actionError').textContent = '';
-              render();
-            } catch (err) {
-              $('actionError').textContent = err.message;
-            }
+            dispatch({ type: 'moveCorner', cornerIndex: idx, point: p, snap90: e.shiftKey });
             return;
           }
           if (!dragId) return;
@@ -287,6 +323,7 @@
 
       async function loadFixture(path) {
         definition = await (await fetch(path)).json();
+        history = createHistory(definition);
         refreshModuleSelect();
         $('wall').innerHTML = definition.room.walls
           .map((w) => `<option value="${w.id}">${w.id}</option>`)
@@ -299,16 +336,14 @@
         $('module').addEventListener('change', syncControls);
         $('widthRange').addEventListener('input', (e) => applyWidth(Number(e.target.value)));
         $('widthNum').addEventListener('change', (e) => applyWidth(Number(e.target.value)));
-        $('depthNum').addEventListener('change', (e) => {
-          definition = updateModule(definition, $('module').value, { depth: Number(e.target.value) }).definition;
-          render();
-        });
-        $('panelNum').addEventListener('change', (e) => {
-          definition = updateModule(definition, $('module').value, {
-            parameters: { panelThickness: Number(e.target.value) },
-          }).definition;
-          render();
-        });
+        $('depthNum').addEventListener('change', (e) =>
+          dispatch({ type: 'resize', moduleId: $('module').value, depth: Number(e.target.value) }));
+        $('panelNum').addEventListener('change', (e) =>
+          dispatch({ type: 'resize', moduleId: $('module').value, parameters: { panelThickness: Number(e.target.value) } }));
+        $('undo').addEventListener('click', doUndo);
+        $('redo').addEventListener('click', doRedo);
+        $('save').addEventListener('click', doSave);
+        $('load').addEventListener('click', doLoad);
         $('fixture').addEventListener('change', (e) => loadFixture(e.target.value));
         $('reset').addEventListener('click', () => loadFixture($('fixture').value));
         $('add').addEventListener('click', () =>
