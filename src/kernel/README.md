@@ -36,8 +36,9 @@ src/kernel/
   model/      canonical model + buildProject/update*; runs.js = canonical runs normalisation;
               editor.js = CP-04 applyAction dispatcher over the placement API
   view/       planSvg.js (plan), isoSvg.js (isometric wireframe), scene3d.js (3D scene data,
-              CP-03; renderer-free), glb.js (binary glTF export, CP-05) +
-              vendor/three.module.min.js (r160, for kernel-3d.html only)
+              CP-03; renderer-free), glb.js (binary glTF export, CP-05),
+              cuttingPdf.js (cutting-list PDF, CP-06) + vendor/three.module.min.js (r160, for
+              kernel-3d.html only)
   tools/      serve.js (static server), render-evidence.js (artifact generator)
   tests/      node:test suites incl. the 10-point fixture acceptance
 ```
@@ -124,10 +125,16 @@ unit-cube mesh (parts + walls + floor), 3 simple materials. `exportGlb(bundle)` 
 dependency-free; kernel-3d.html offers "download GLB". The GLB opens in three's GLTFLoader/Blender.
 Importing GLB back into the canonical model is deliberately out of scope (the model stays authored).
 
+## Cutting PDF (CP-06)
+
+view/cuttingPdf.js emits a printable cutting list (part id, material, L/W/T, grain, edge flags, qty,
+totals) straight from bundle.parts as a deterministic PDF 1.4 - the paper half of GrabSketch's
+cutting output; the CSV half ships since CP-01. kernel-preview.html offers "download cutting PDF".
+
 ## Run it
 
 ```
-npm test                                   # node:test, 104 tests, zero deps
+npm test                                   # node:test, 108 tests, zero deps
 node src/kernel/tools/serve.js 8080        # static server
 # open http://127.0.0.1:8080/kernel-preview.html   (debug preview)
 # open http://127.0.0.1:8080/kernel-3d.html        (derived 3D view, CP-03)

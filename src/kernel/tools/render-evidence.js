@@ -24,6 +24,7 @@ import { planSvg } from '../view/planSvg.js';
 import { isoSvg } from '../view/isoSvg.js';
 import { sceneGraph } from '../view/scene3d.js';
 import { exportGlb } from '../view/glb.js';
+import { cuttingPdf } from '../view/cuttingPdf.js';
 
 const ROOT = resolve(fileURLToPath(new URL('../../..', import.meta.url)));
 const OUT = resolve(ROOT, 'docs/checkpoints/evidence');
@@ -137,6 +138,12 @@ await writeFile(
 
 // CP-05 evidence: binary glTF export of the same derived scene.
 await writeFile(resolve(OUT, 'kitchen-2500x1500.glb'), exportGlb(base));
+
+// CP-06 evidence: cutting-list PDF derived from the same parts/BOM.
+await writeFile(
+  resolve(OUT, 'cutting-kitchen-2500x1500.pdf'),
+  cuttingPdf(base, { projectId: definition.id }),
+);
 
 const offset = (b, id) => b.modules.find((m) => m.id === id).wallOffset;
 console.log('evidence written to docs/checkpoints/evidence/');

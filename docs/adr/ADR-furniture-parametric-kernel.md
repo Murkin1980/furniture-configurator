@@ -114,3 +114,13 @@ The derived scene is consumable outside the repository's own views:
   never derived from 3D (protects the one-way flow).
 - Verified by `cp05-glb.test.js` (container, node parity, TRS vs moduleTransform, determinism) and
   out-of-band by parsing the committed artifact with three's GLTFLoader (37 meshes).
+
+## CP-06 addendum (cutting-list PDF)
+
+The manufacturing paper trail completes with a deterministic PDF 1.4 export:
+
+- `view/cuttingPdf.js` lists every part (id, material, L/W/T, grain, edge flags, qty) plus totals,
+  straight from bundle.parts; uncompressed streams, correct xref, ASCII-only (base-14 fonts carry
+  no reliable Cyrillic), no dates -> byte-deterministic like other evidence.
+- Verified in-suite (container/xref/table/determinism) and out-of-band by pdfjs-dist text
+  extraction of the committed artifact.
