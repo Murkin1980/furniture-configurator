@@ -54,5 +54,20 @@ added (deep-change gate not triggered).
 ## Risks / limitations
 
 - SVG preview is a debug aid, not a polished 3D editor (out of scope).
-- Corner reservation currently handles L-corners with perpendicular or oblique walls via line
-  intersection; P-shaped/multi-run auto-packing is future work.
+- Corner reservations arbitrate L-corners via line intersection; a run packs from one end and
+  leaves the far end free so the corner-owning run can close on the corner.
+
+## CP-02 addendum (continuation)
+
+Multi-run + opening-aware placement were added without new dependencies and without touching the
+one-way flow:
+
+- Openings and the pack-direction corner stand-off are treated as blocked intervals; auto modules
+  route around them (`nextFromLow` / `nextFromHigh`).
+- `runs[].startPoint` ('start' | 'end') selects fill direction, mirroring GrabSketch's confirmed
+  "Starting point" option.
+- `CANNOT_PLACE` replaces silent overflow when a run cannot fit.
+- Three.js remains deferred (CDN egress-blocked in the sandbox; zero-dependency ADR). The kernel
+  stays renderer-agnostic, so a WebGL view can be attached later.
+- Verified by `src/kernel/tests/cp02-placement.test.js` and
+  `docs/checkpoints/evidence/plan-kitchen-multirun.svg`.

@@ -109,9 +109,18 @@ await writeFile(
   'utf8',
 );
 
+// CP-02 evidence: two-run room with a door (opening-aware + multi-run).
+const multirun = JSON.parse(
+  readFileSync(resolve(ROOT, 'fixtures/kitchen-multirun/project.json'), 'utf8'),
+);
+const mr = buildProject(multirun);
+await writeFile(resolve(OUT, 'plan-kitchen-multirun.svg'), planSvg(mr), 'utf8');
+
 const offset = (b, id) => b.modules.find((m) => m.id === id).wallOffset;
 console.log('evidence written to docs/checkpoints/evidence/');
 console.log(`  baseline: parts=${base.parts.length} bomLines=${base.bom.length} panels=${base.totals.panels} area=${base.totals.areaM2.toFixed(4)}m2`);
 console.log(`  corner wall-a__wall-b at (${base.corners[0].point.x}, ${base.corners[0].point.y}) owner=${base.corners[0].occupancy?.moduleId}`);
 console.log(`  a3=600 -> a4 offset ${offset(base, 'a4')}; a3=500 -> a4 offset ${offset(narrowed, 'a4')}`);
 console.log(`  a3=600 -> issues ${base.issues.length}; a3=500 -> issues ${narrowed.issues.map((i) => i.code).join(',') || 'none'}`);
+console.log(`  multirun -> wall-a offsets ${mr.modules.filter((m) => m.wallId === 'wall-a').map((m) => m.wallOffset).join(',')} (door at 1200-2000 routed around)`);
+console.log(`  multirun -> errors ${mr.issues.filter((i) => i.severity === 'error').length}; warnings ${mr.issues.filter((i) => i.severity === 'warning').map((i) => i.code).join(',') || 'none'}`);

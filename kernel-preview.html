@@ -32,7 +32,7 @@
   </head>
   <body>
     <header>
-      <h1>CP-01 kernel debug preview — Salamat L-shaped kitchen, 2500 × 1500 mm, 90° corner</h1>
+      <h1>Furniture-kernel debug preview — CP-01 L-shaped 2500 × 1500 · CP-02 two-run + door</h1>
       <p>Every number below is derived by <code>buildProject()</code> from the canonical model. Nothing here stores its own dimensions.</p>
     </header>
 
@@ -40,6 +40,12 @@
       <section class="wide">
         <h2>Drive the canonical model</h2>
         <div class="controls">
+          <label>fixture
+            <select id="fixture">
+              <option value="./fixtures/kitchen-2500x1500/project.json">L-shaped 2500 × 1500 (CP-01)</option>
+              <option value="./fixtures/kitchen-multirun/project.json">Two-run + door 3000 × 2000 (CP-02)</option>
+            </select>
+          </label>
           <label>module
             <select id="module"></select>
           </label>
@@ -169,14 +175,16 @@
         render();
       }
 
-      async function init() {
-        const res = await fetch('./fixtures/kitchen-2500x1500/project.json');
-        definition = await res.json();
-
+      async function loadFixture(path) {
+        definition = await (await fetch(path)).json();
         $('module').innerHTML = definition.modules
           .map((m) => `<option value="${m.id}">${m.id} (${m.wallId})</option>`)
           .join('');
+        syncControls();
+        render();
+      }
 
+      async function init() {
         $('module').addEventListener('change', syncControls);
         $('widthRange').addEventListener('input', (e) => applyWidth(Number(e.target.value)));
         $('widthNum').addEventListener('change', (e) => applyWidth(Number(e.target.value)));
@@ -190,14 +198,10 @@
           }).definition;
           render();
         });
-        $('reset').addEventListener('click', async () => {
-          definition = await (await fetch('./fixtures/kitchen-2500x1500/project.json')).json();
-          syncControls();
-          render();
-        });
+        $('fixture').addEventListener('change', (e) => loadFixture(e.target.value));
+        $('reset').addEventListener('click', () => loadFixture($('fixture').value));
 
-        syncControls();
-        render();
+        await loadFixture($('fixture').value);
       }
 
       init();

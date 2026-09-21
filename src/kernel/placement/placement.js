@@ -113,15 +113,58 @@ export function pointInConvex(poly, p) {
 }
 
 /**
- * Sequential run packing.
+ * Hard-blocked intervals on a wall: corner reservations at either end plus the
+ * wall's own openings (doors/windows). A run must route around all of these.
+ */
+export function wallHardBlocked(room, reservations, wallId) {
+  const wall = room.wall(wallId);
+  if (!wall) throw new Error(`wallHardBlocked: unknown wall "${wallId}"`);
+  const res = reservations.get(wallId) ?? { atStart: 0, atEnd: 0 };
+  const ivs = [];
+  if (res.atStart > 1e-6) ivs.push({ from: 0, to: res.atStart });
+  if (res.atEnd > 1e-6) ivs.push({ from: wall.length - res.atEnd, to: wall.length });
+  for (const o of room.openingsOn(wallId)) {
+    ivs.push({ from: o.offset, to: o.offset + o.width });
+  }
+  return mergeIntervals(ivs);
+}
+
+/** Lowest start offset >= cursor where [c, c+width] avoids `blocked` and the wall. */
+function nextFromLow(blocked, cursor, width, wallLen) {
+  let c = Math.max(0, cursor);
+  for (;;) {
+    if (c + width > wallLen + 1e-6) return c; // no room left -> overflow
+    const hit = blocked.find((b) => c < b.to - 1e-6 && c + width > b.from + 1e-6);
+    if (!hit) return c;
+    c = hit.to;
+  }
+}
+
+/** Highest end offset <= cursor where [c-width, c] avoids `blocked` and the wall. */
+function nextFromHigh(blocked, cursor, width, wallLen) {
+  let c = Math.min(wallLen, cursor);
+  for (;;) {
+    if (c - width < -1e-6) return c; // no room left -> overflow
+    const hit = blocked.find((b) => c - width < b.to - 1e-6 && c > b.from + 1e-6);
+    if (!hit) return c;
+    c = hit.from;
+  }
+}
+
+/**
+ * Sequential run packing, opening-aware and direction-aware (CP-02).
  *
  * Modules that set `autoOffset: true` are laid end to end along their wall,
- * starting after the corner reservation. Modules with an explicit `wallOffset`
- * are respected as authored. Order within a wall is the array order.
+ * routing around corner reservations and the wall's openings. `runs` selects
+ * the fill direction per wall (`startPoint: 'start' | 'end'`, default 'start').
+ * Modules with an explicit `wallOffset` are respected as authored.
+ *
+ * A module that cannot fit is still given an offset but flagged with
+ * `placementError: 'no-space'` so validation can report `CANNOT_PLACE`.
  *
  * @returns {object[]} new module objects with resolved wallOffset
  */
-export function packRuns(room, modules, reservations) {
+export function packRuns(room, modules, reservations, runs = []) {
   const byWall = new Map();
   modules.forEach((m, index) => {
     const list = byWall.get(m.wallId) ?? [];
@@ -129,20 +172,54 @@ export function packRuns(room, modules, reservations) {
     byWall.set(m.wallId, list);
   });
 
+  const runFor = (wallId) => runs.find((r) => r.wallId === wallId) ?? { startPoint: 'start' };
   const resolved = modules.map((m) => ({ ...m }));
+
+  // Openings block a run anywhere on its wall. A corner stand-off blocks a run
+  // only at the end it packs FROM (its start for 'start', its end for 'end');
+  // the far end is left free so the corner-owning run can close on the corner.
+  const openingsOn = (wallId) =>
+    room.openingsOn(wallId).map((o) => ({ from: o.offset, to: o.offset + o.width }));
+
   for (const [wallId, entries] of byWall) {
     const wall = room.wall(wallId);
     if (!wall) throw new Error(`packRuns: unknown wall "${wallId}"`);
-    const res = reservations.get(wallId) ?? { atStart: 0 };
-    let cursor = Math.max(0, res.atStart);
-    for (const { m, index } of entries) {
-      if (m.autoOffset) {
-        resolved[index].wallOffset = cursor;
-        cursor += m.width;
-      } else {
-        const offset = m.wallOffset ?? 0;
-        resolved[index].wallOffset = offset;
-        cursor = Math.max(cursor, offset + m.width);
+    const res = reservations.get(wallId) ?? { atStart: 0, atEnd: 0 };
+    const { startPoint } = runFor(wallId);
+
+    if (startPoint === 'end') {
+      const ivs = [...openingsOn(wallId)];
+      if (res.atEnd > 1e-6) ivs.push({ from: wall.length - res.atEnd, to: wall.length });
+      const blocked = mergeIntervals(ivs);
+      let cursorHigh = wall.length;
+      for (const { m, index } of entries) {
+        if (m.autoOffset) {
+          const c = nextFromHigh(blocked, cursorHigh, m.width, wall.length);
+          resolved[index].wallOffset = c - m.width;
+          if (c - m.width < -1e-6) resolved[index].placementError = 'no-space';
+          cursorHigh = c - m.width;
+        } else {
+          const offset = m.wallOffset ?? 0;
+          resolved[index].wallOffset = offset;
+          cursorHigh = Math.min(cursorHigh, offset);
+        }
+      }
+    } else {
+      const ivs = [...openingsOn(wallId)];
+      if (res.atStart > 1e-6) ivs.push({ from: 0, to: res.atStart });
+      const blocked = mergeIntervals(ivs);
+      let cursor = 0;
+      for (const { m, index } of entries) {
+        if (m.autoOffset) {
+          const c = nextFromLow(blocked, cursor, m.width, wall.length);
+          resolved[index].wallOffset = c;
+          if (c + m.width > wall.length + 1e-6) resolved[index].placementError = 'no-space';
+          cursor = c + m.width;
+        } else {
+          const offset = m.wallOffset ?? 0;
+          resolved[index].wallOffset = offset;
+          cursor = Math.max(cursor, offset + m.width);
+        }
       }
     }
   }
@@ -156,11 +233,11 @@ export function packRuns(room, modules, reservations) {
  * The loop is needed because wall B's stand-off depends on what wall A's
  * modules ended up doing, and vice versa. It is bounded and deterministic.
  */
-export function layoutModules(room, modules, { maxIterations = 10 } = {}) {
+export function layoutModules(room, modules, { maxIterations = 10, runs } = {}) {
   let current = modules.map((m) => ({ ...m }));
   for (let i = 0; i < maxIterations; i += 1) {
     const reservations = computeReservations(room, current);
-    const next = packRuns(room, current, reservations);
+    const next = packRuns(room, current, reservations, runs);
     const stable = next.every(
       (m, idx) => Math.abs(m.wallOffset - current[idx].wallOffset) < 1e-9,
     );

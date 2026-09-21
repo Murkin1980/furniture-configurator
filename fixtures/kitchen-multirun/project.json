@@ -1,0 +1,31 @@
+{
+  "id": "kitchen-multirun",
+  "name": "Two-run kitchen with a door (CP-02)",
+  "units": "mm",
+  "source": "CP-02 multi-run + opening-aware placement fixture",
+  "room": {
+    "id": "room-rect",
+    "height": 2500,
+    "walls": [
+      { "id": "wall-a", "start": { "x": 0, "y": 0 }, "end": { "x": 3000, "y": 0 }, "thickness": 100 },
+      { "id": "wall-b", "start": { "x": 3000, "y": 0 }, "end": { "x": 3000, "y": 2000 }, "thickness": 100 },
+      { "id": "wall-c", "start": { "x": 3000, "y": 2000 }, "end": { "x": 0, "y": 2000 }, "thickness": 100 },
+      { "id": "wall-d", "start": { "x": 0, "y": 2000 }, "end": { "x": 0, "y": 0 }, "thickness": 100 }
+    ],
+    "openings": [
+      { "id": "door-1", "kind": "door", "wallId": "wall-a", "offset": 1200, "width": 800, "sillHeight": 0, "headHeight": 2050 }
+    ]
+  },
+  "runs": [
+    { "wallId": "wall-a", "startPoint": "start" },
+    { "wallId": "wall-c", "startPoint": "start" }
+  ],
+  "modules": [
+    { "id": "a1", "type": "base-cabinet", "width": 600, "height": 720, "depth": 560, "wallId": "wall-a", "autoOffset": true },
+    { "id": "a2", "type": "base-cabinet", "width": 600, "height": 720, "depth": 560, "wallId": "wall-a", "autoOffset": true },
+    { "id": "a3", "type": "base-cabinet", "width": 600, "height": 720, "depth": 560, "wallId": "wall-a", "autoOffset": true },
+    { "id": "c1", "type": "base-cabinet", "width": 800, "height": 720, "depth": 350, "wallId": "wall-c", "autoOffset": true },
+    { "id": "c2", "type": "base-cabinet", "width": 800, "height": 720, "depth": 350, "wallId": "wall-c", "autoOffset": true }
+  ],
+  "sheet": { "sheetWidth": 2800, "sheetHeight": 2070, "kerf": 4 }
+}

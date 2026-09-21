@@ -51,6 +51,7 @@ Project {
   },
   modules: [ { id, type:'base-cabinet', width, height, depth,
                wallId, wallOffset?, autoOffset?, parameters? } ],   // wall-relative placement
+  runs:  [ { wallId, startPoint:'start'|'end' } ],                   // optional run fill direction (CP-02)
   sheet: { sheetWidth, sheetHeight, kerf },                          // for the lower-bound estimate
 }
 ```
@@ -70,10 +71,14 @@ the BOM read the same numbers.
 
 - A module stands on a wall: back edge on the wall axis, extending along the wall's inward normal
   by `depth`, oriented to the wall angle. No module stores world X/Y.
-- `autoOffset` modules pack sequentially along their wall from the first corner reservation.
+- `autoOffset` modules pack sequentially along their wall, **routing around the wall's openings
+  (doors/windows) and the corner reservation at the end they pack from** (CP-02).
+- `runs: [ { wallId, startPoint: 'start'|'end' } ]` selects each wall's fill direction (CP-02),
+  mirroring GrabSketch's confirmed "Starting point" option. Default `'start'`.
 - Corner reservation on a wall = the projected overlap of neighbouring walls' module footprints
   with this wall's cabinet strip (computed via convex clipping). This is what makes an L-corner
-  non-colliding.
+  non-colliding. The far end of a run is left free so the corner-owning run can close on the corner.
+- A module that cannot fit is flagged `placementError: 'no-space'` and reported as `CANNOT_PLACE`.
 
 ## Run it
 

@@ -83,8 +83,9 @@ export function buildProject(definition) {
   // 1. Room geometry: walls, COMPUTED corners, inward normals, openings.
   const room = buildRoom(def.room);
 
-  // 2. Placement: resolve wallOffsets (auto-packed runs honour corner reservations).
-  const modules = layoutModules(room, def.modules);
+  // 2. Placement: resolve wallOffsets (auto-packed runs honour corner
+  //    reservations and openings; `runs` sets each wall's fill direction).
+  const modules = layoutModules(room, def.modules, { runs: def.runs });
 
   // 3. Manufacturing: parts come from the parametric generators only.
   const parts = deriveParts(modules);

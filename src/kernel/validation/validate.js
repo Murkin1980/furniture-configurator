@@ -26,6 +26,17 @@ export function validateProject(room, modules) {
 
   for (const m of modules) {
     if (!room.wall(m.wallId)) continue;
+    if (m.placementError === 'no-space') {
+      issues.push({
+        code: 'CANNOT_PLACE',
+        severity: 'error',
+        subject: m.id,
+        message:
+          `Module "${m.id}" (${m.width} mm) cannot fit on wall "${m.wallId}" ` +
+          `after routing around openings and corner reservations`,
+      });
+      continue;
+    }
     if (!moduleWithinWall(room, m)) {
       const wall = room.wall(m.wallId);
       issues.push({
@@ -78,7 +89,11 @@ export function validateProject(room, modules) {
       const atEndReserved =
         gap.from >= wall.length - reservations.atEnd - 1e-6 &&
         reservations.atEnd > 0;
-      if (reserved || atEndReserved) continue;
+      // A gap that is exactly a door/window is intentional, not a run gap.
+      const isOpening = room.openingsOn(wall.id).some(
+        (o) => gap.from >= o.offset - 1e-6 && gap.to <= o.offset + o.width + 1e-6,
+      );
+      if (reserved || atEndReserved || isOpening) continue;
       // Only report gaps on walls that actually carry modules.
       if (!occupancy.occupied.length) continue;
       issues.push({
