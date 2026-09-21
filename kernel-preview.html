@@ -121,11 +121,16 @@
               (res ? ` · stand-off ${fmt(res.atStart)}` : '') + `</span></div>`;
           })
           .join('');
+        const runsRows = bundle.occupancy
+          .filter((o) => bundle.modules.some((m) => m.wallId === o.wallId))
+          .map((o) => `<div><span>run ${o.wallId}</span><span>` +
+            `usable ${fmt(o.usable)} · reserved ${fmt(o.atStart)} start / ${fmt(o.atEnd)} end</span></div>`)
+          .join('');
         const offsets = bundle.modules
           .map((m) => `<div><span>${m.id} on ${m.wallId}</span><span>` +
             `width ${fmt(m.width)} · depth ${fmt(m.depth)} · offset ${fmt(m.wallOffset)}</span></div>`)
           .join('');
-        $('corners').innerHTML = cornerRows + offsets;
+        $('corners').innerHTML = cornerRows + runsRows + offsets;
 
         // Validation.
         $('issues').innerHTML = bundle.issues.length

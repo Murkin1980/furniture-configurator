@@ -4,6 +4,8 @@
       .g{stroke:#e5e7eb;stroke-width:1}
       .m{fill:#60a5fa;fill-opacity:.28;stroke:#1d4ed8;stroke-width:2}
       .m.hi{fill:#f59e0b;fill-opacity:.45;stroke:#b45309;stroke-width:3}
+      .m.err{fill:#f87171;fill-opacity:.5;stroke:#b91c1c;stroke-width:3}
+      .res{fill:#ef4444;fill-opacity:.12;stroke:#dc2626;stroke-width:2;stroke-dasharray:6 4}
       .lbl{font:600 26px ui-monospace,monospace;fill:#111827}
       .dim{font:500 24px ui-monospace,monospace;fill:#6b7280}
       .cor{fill:#dc2626}
@@ -36,6 +38,9 @@
 <line class="w" x1="3120" y1="2120" x2="3120" y2="120"/>
 <line class="w" x1="3120" y1="120" x2="120" y2="120"/>
 <line class="w" x1="120" y1="120" x2="120" y2="2120"/>
+<polygon class="res" points="3120,2120 3120,1560 2560,1560 2560,2120"><title>corner reservation wall-b</title></polygon>
+<polygon class="res" points="3120,470 3120,120 2560,120 2560,470"><title>corner reservation wall-b</title></polygon>
+<polygon class="res" points="120,1560 120,2120 680,2120 680,1560"><title>corner reservation wall-d</title></polygon>
 <polygon class="m" points="120,2120 720,2120 720,1560 120,1560"><title>a1 600 mm</title></polygon>
 <polygon class="m" points="720,2120 1320,2120 1320,1560 720,1560"><title>a2 600 mm</title></polygon>
 <polygon class="m" points="2120,2120 2720,2120 2720,1560 2120,1560"><title>a3 600 mm</title></polygon>

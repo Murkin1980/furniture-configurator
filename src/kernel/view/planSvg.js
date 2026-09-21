@@ -1,4 +1,7 @@
 import { moduleFootprint } from '../furniture/moduleGeometry.js';
+import { maxModuleDepth } from '../placement/placement.js';
+import { add, scale } from '../geometry/vec2.js';
+import { wallPointAt } from '../geometry/wall.js';
 
 /**
  * Derived plan view (top-down).
@@ -61,6 +64,8 @@ export function planSvg(bundle, opts = {}) {
       .g{stroke:#e5e7eb;stroke-width:1}
       .m{fill:#60a5fa;fill-opacity:.28;stroke:#1d4ed8;stroke-width:2}
       .m.hi{fill:#f59e0b;fill-opacity:.45;stroke:#b45309;stroke-width:3}
+      .m.err{fill:#f87171;fill-opacity:.5;stroke:#b91c1c;stroke-width:3}
+      .res{fill:#ef4444;fill-opacity:.12;stroke:#dc2626;stroke-width:2;stroke-dasharray:6 4}
       .lbl{font:600 26px ui-monospace,monospace;fill:#111827}
       .dim{font:500 24px ui-monospace,monospace;fill:#6b7280}
       .cor{fill:#dc2626}
@@ -93,6 +98,31 @@ export function planSvg(bundle, opts = {}) {
     );
   }
 
+  // Modules whose placement is invalid (overlap / cannot place / conflict).
+  const errorIds = new Set();
+  for (const issue of bundle.issues ?? []) {
+    if (issue.severity !== 'error') continue;
+    for (const token of issue.subject.split('+')) errorIds.add(token.trim());
+  }
+
+  // Corner reservations / stand-offs, drawn as hatched zones (derived data).
+  const depth = maxModuleDepth(bundle.modules);
+  for (const w of room.walls) {
+    const res = bundle.reservations?.get(w.id) ?? { atStart: 0, atEnd: 0 };
+    for (const [from, to] of [
+      [0, res.atStart],
+      [w.length - res.atEnd, w.length],
+    ]) {
+      if (to - from <= 1e-6) continue;
+      const p0 = wallPointAt(w, from);
+      const p1 = wallPointAt(w, to);
+      const inward = scale(w.inwardNormal, depth);
+      const poly = [p0, p1, add(p1, inward), add(p0, inward)];
+      const pts = poly.map((p) => `${fmt(sx(p.x))},${fmt(sy(p.y))}`).join(' ');
+      out.push(`<polygon class="res" points="${pts}"><title>corner reservation ${esc(w.id)}</title></polygon>`);
+    }
+  }
+
   // Modules, from the derived footprints.
   const footprints = new Map(
     bundle.modules.map((m) => [m.id, moduleFootprint(room, m)]),
@@ -100,7 +130,7 @@ export function planSvg(bundle, opts = {}) {
   for (const m of bundle.modules) {
     const fp = footprints.get(m.id);
     const pts = fp.map((p) => `${fmt(sx(p.x))},${fmt(sy(p.y))}`).join(' ');
-    const cls = highlightModuleId === m.id ? 'm hi' : 'm';
+    const cls = errorIds.has(m.id) ? 'm err' : highlightModuleId === m.id ? 'm hi' : 'm';
     out.push(`<polygon class="${cls}" points="${pts}"><title>${esc(m.id)} ${fmt(m.width)} mm</title></polygon>`);
   }
 

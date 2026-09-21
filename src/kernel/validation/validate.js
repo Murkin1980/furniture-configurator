@@ -12,6 +12,7 @@ import { findOverlaps, moduleWithinWall, wallOccupancy, computeReservations } fr
  */
 export function validateProject(room, modules) {
   const issues = [];
+  const reservations = computeReservations(room, modules);
 
   for (const m of modules) {
     if (!room.wall(m.wallId)) {
@@ -59,6 +60,29 @@ export function validateProject(room, modules) {
     });
   }
 
+  // An explicitly placed module may land inside a corner reservation zone
+  // (the stand-off owed to the run that owns the corner). Flag it.
+  for (const m of modules) {
+    if (!room.wall(m.wallId)) continue;
+    if (m.autoOffset) continue; // auto-packed modules are routed around reservations
+    const wall = room.wall(m.wallId);
+    const res = reservations.get(m.wallId) ?? { atStart: 0, atEnd: 0 };
+    const from = m.wallOffset ?? 0;
+    const to = from + m.width;
+    const inStart = from < res.atStart - 1e-6;
+    const inEnd = to > wall.length - res.atEnd + 1e-6 && res.atEnd > 0;
+    if (inStart || inEnd) {
+      issues.push({
+        code: 'CORNER_CONFLICT',
+        severity: 'error',
+        subject: m.id,
+        message:
+          `Module "${m.id}" sits inside the corner reservation on wall "${m.wallId}" ` +
+          `(reserved ${Math.round(res.atStart)} mm at start, ${Math.round(res.atEnd)} mm at end)`,
+      });
+    }
+  }
+
   for (const opening of room.openings) {
     const blocked = [{ from: opening.offset, to: opening.offset + opening.width }];
     for (const m of modules) {
@@ -80,15 +104,15 @@ export function validateProject(room, modules) {
 
   for (const wall of room.walls) {
     const occupancy = wallOccupancy(room, modules, wall.id);
-    const reservations = computeReservations(room, modules).get(wall.id);
+    const res = reservations.get(wall.id) ?? { atStart: 0, atEnd: 0 };
     for (const gap of occupancy.free) {
       // A free interval that is fully covered by a neighbour's corner
       // reservation is not a defect - that space belongs to the other run.
       const reserved =
-        gap.from <= reservations.atStart + 1e-6 && gap.to <= reservations.atStart + 1e-6;
+        gap.from <= res.atStart + 1e-6 && gap.to <= res.atStart + 1e-6;
       const atEndReserved =
-        gap.from >= wall.length - reservations.atEnd - 1e-6 &&
-        reservations.atEnd > 0;
+        gap.from >= wall.length - res.atEnd - 1e-6 &&
+        res.atEnd > 0;
       // A gap that is exactly a door/window is intentional, not a run gap.
       const isOpening = room.openingsOn(wall.id).some(
         (o) => gap.from >= o.offset - 1e-6 && gap.to <= o.offset + o.width + 1e-6,

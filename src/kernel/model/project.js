@@ -20,6 +20,7 @@
  */
 
 import { buildRoom } from '../room/room.js';
+import { normalizeProject, runsStartPoints } from './runs.js';
 import {
   computeReservations,
   cornerOccupancy,
@@ -50,7 +51,7 @@ import { validateProject } from '../validation/validate.js';
 export const CANONICAL_MODEL_SHAPE = Object.freeze({
   project: ['id', 'room', 'modules'],
   wall: ['id', 'start', 'end'],
-  module: ['id', 'type', 'width', 'height', 'depth', 'wallId'],
+  module: ['id', 'type', 'width', 'height', 'depth'],
 });
 
 /** Structural validation of a project definition (not geometry). */
@@ -64,6 +65,10 @@ export function assertProjectDefinition(def) {
   for (const m of def.modules) {
     for (const key of CANONICAL_MODEL_SHAPE.module) {
       if (m[key] === undefined) throw new Error(`module "${m.id ?? '?'}" is missing "${key}"`);
+    }
+    // wallId may live on the module (CP-01) or on a run (CP-02).
+    if (!def.runs && m.wallId === undefined) {
+      throw new Error(`module "${m.id}" is missing "wallId" (no runs declared)`);
     }
     if (ids.has(m.id)) throw new Error(`duplicate module id "${m.id}"`);
     ids.add(m.id);
@@ -80,12 +85,15 @@ export function assertProjectDefinition(def) {
 export function buildProject(definition) {
   const def = assertProjectDefinition(definition);
 
+  // 0. Normalise to canonical runs (CP-01 module.wallId and CP-02 runs both work).
+  const { runs, modules: ordered } = normalizeProject(def);
+
   // 1. Room geometry: walls, COMPUTED corners, inward normals, openings.
   const room = buildRoom(def.room);
 
   // 2. Placement: resolve wallOffsets (auto-packed runs honour corner
-  //    reservations and openings; `runs` sets each wall's fill direction).
-  const modules = layoutModules(room, def.modules, { runs: def.runs });
+  //    reservations and openings; each run sets its wall's fill direction).
+  const modules = layoutModules(room, ordered, { runs: runsStartPoints(runs) });
 
   // 3. Manufacturing: parts come from the parametric generators only.
   const parts = deriveParts(modules);
@@ -105,10 +113,15 @@ export function buildProject(definition) {
     occupancy: cornerOccupancy(room, modules, corner),
     reservationAfter: reservations.get(corner.wallAfter),
   }));
-  const occupancy = room.walls.map((w) => wallOccupancy(room, modules, w.id));
+  const occupancy = room.walls.map((w) => {
+    const occ = wallOccupancy(room, modules, w.id);
+    const res = reservations.get(w.id) ?? { atStart: 0, atEnd: 0 };
+    return { ...occ, atStart: res.atStart, atEnd: res.atEnd, usable: w.length - res.atStart - res.atEnd };
+  });
 
   return {
     definition: def,
+    runs,
     room,
     modules,
     parts,
