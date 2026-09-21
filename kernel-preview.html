@@ -1,0 +1,206 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>CP-01 kernel debug preview — 2500 × 1500 L-shaped kitchen</title>
+    <style>
+      :root { color-scheme: light; }
+      body { margin: 0; font: 14px/1.45 ui-monospace, SFMono-Regular, Menlo, monospace; background: #f8fafc; color: #0f172a; }
+      header { padding: 12px 16px; background: #0f172a; color: #f8fafc; }
+      header h1 { margin: 0; font-size: 15px; }
+      header p { margin: 4px 0 0; font-size: 12px; color: #94a3b8; }
+      main { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 12px; padding: 12px 16px; }
+      section { background: #fff; border: 1px solid #e2e8f0; border-radius: 6px; padding: 10px; min-width: 0; }
+      section h2 { margin: 0 0 8px; font-size: 12px; text-transform: uppercase; letter-spacing: .06em; color: #475569; }
+      .wide { grid-column: 1 / -1; }
+      .controls { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; }
+      .controls label { display: flex; gap: 6px; align-items: center; font-size: 12px; }
+      input[type=range] { width: 180px; }
+      input[type=number] { width: 76px; }
+      table { border-collapse: collapse; width: 100%; font-size: 12px; }
+      th, td { border-bottom: 1px solid #e2e8f0; padding: 3px 6px; text-align: left; }
+      th { color: #475569; font-weight: 600; }
+      td.n { text-align: right; font-variant-numeric: tabular-nums; }
+      .issue-error { color: #b91c1c; }
+      .issue-warning { color: #b45309; }
+      .ok { color: #15803d; }
+      .kv { font-size: 12px; }
+      .kv div { display: flex; justify-content: space-between; gap: 12px; border-bottom: 1px dashed #e2e8f0; padding: 2px 0; }
+      @media (max-width: 900px) { main { grid-template-columns: 1fr; } }
+    </style>
+  </head>
+  <body>
+    <header>
+      <h1>CP-01 kernel debug preview — Salamat L-shaped kitchen, 2500 × 1500 mm, 90° corner</h1>
+      <p>Every number below is derived by <code>buildProject()</code> from the canonical model. Nothing here stores its own dimensions.</p>
+    </header>
+
+    <main>
+      <section class="wide">
+        <h2>Drive the canonical model</h2>
+        <div class="controls">
+          <label>module
+            <select id="module"></select>
+          </label>
+          <label>width
+            <input type="range" id="widthRange" min="300" max="1200" step="10">
+            <input type="number" id="widthNum" min="300" max="1200" step="10">
+          </label>
+          <label>depth
+            <input type="number" id="depthNum" min="300" max="700" step="10">
+          </label>
+          <label>panel
+            <input type="number" id="panelNum" min="10" max="25" step="1">
+          </label>
+          <button id="reset" type="button">reset fixture</button>
+        </div>
+      </section>
+
+      <section>
+        <h2>Plan (walls, calculated corners, module footprints)</h2>
+        <div id="plan"></div>
+      </section>
+
+      <section>
+        <h2>Isometric wireframe (one box per Part, from <code>part.box</code>)</h2>
+        <div id="iso"></div>
+      </section>
+
+      <section>
+        <h2>Calculated corner + placement</h2>
+        <div id="corners" class="kv"></div>
+      </section>
+
+      <section>
+        <h2>Validation</h2>
+        <div id="issues"></div>
+      </section>
+
+      <section class="wide">
+        <h2>BOM / Parts (regenerated from the same model)</h2>
+        <div id="bom"></div>
+      </section>
+    </main>
+
+    <script type="module">
+      import {
+        buildProject,
+        updateModule,
+        planSvg,
+        isoSvg,
+      } from './src/kernel/index.js';
+
+      let definition = null;
+
+      const $ = (id) => document.getElementById(id);
+      const fmt = (n) => (Number.isInteger(n) ? String(n) : n.toFixed(2));
+
+      function render() {
+        const bundle = buildProject(definition);
+
+        $('plan').innerHTML = planSvg(bundle, { highlightModuleId: $('module').value });
+        $('iso').innerHTML = isoSvg(bundle, { highlightModuleId: $('module').value });
+
+        // Corner + placement readout.
+        const cornerRows = bundle.corners
+          .filter((c) => c.id === 'wall-a__wall-b' || c.occupancy)
+          .map((c) => {
+            const occ = c.occupancy
+              ? `${c.occupancy.moduleId} (depth ${fmt(c.occupancy.depth)})`
+              : 'free';
+            const res = c.reservationAfter;
+            return `<div><span>corner ${c.id}</span><span>` +
+              `(${fmt(c.point.x)}, ${fmt(c.point.y)}) · ${fmt(c.turnDeg)}° · owner ${occ}` +
+              (res ? ` · stand-off ${fmt(res.atStart)}` : '') + `</span></div>`;
+          })
+          .join('');
+        const offsets = bundle.modules
+          .map((m) => `<div><span>${m.id} on ${m.wallId}</span><span>` +
+            `width ${fmt(m.width)} · depth ${fmt(m.depth)} · offset ${fmt(m.wallOffset)}</span></div>`)
+          .join('');
+        $('corners').innerHTML = cornerRows + offsets;
+
+        // Validation.
+        $('issues').innerHTML = bundle.issues.length
+          ? bundle.issues
+              .map((i) => `<div class="issue-${i.severity}">${i.code} [${i.severity}] ${i.message}</div>`)
+              .join('')
+          : '<div class="ok">no issues</div>';
+
+        // BOM.
+        const rows = bundle.bom
+          .map((l) => `<tr>
+              <td>${l.label}</td>
+              <td>${l.material}</td>
+              <td class="n">${fmt(l.length)}</td>
+              <td class="n">${fmt(l.width)}</td>
+              <td class="n">${fmt(l.thickness)}</td>
+              <td>${l.grain}</td>
+              <td class="n">${l.count}</td>
+              <td class="n">${l.areaM2.toFixed(3)}</td>
+              <td class="n">${l.bandingM.toFixed(2)}</td>
+            </tr>`)
+          .join('');
+        $('bom').innerHTML = `
+          <table>
+            <thead><tr><th>part</th><th>material</th><th>length</th><th>width</th><th>t</th>
+              <th>grain</th><th>qty</th><th>m²</th><th>band m</th></tr></thead>
+            <tbody>${rows}</tbody>
+          </table>
+          <p>${bundle.bom.length} lines · ${bundle.totals.panels} panels ·
+             ${bundle.totals.areaM2.toFixed(3)} m² · ${bundle.totals.bandingM.toFixed(2)} m banding ·
+             ${bundle.parts.length} parts</p>`;
+      }
+
+      function syncControls() {
+        const id = $('module').value;
+        const m = definition.modules.find((x) => x.id === id);
+        $('widthRange').value = m.width;
+        $('widthNum').value = m.width;
+        $('depthNum').value = m.depth;
+        $('panelNum').value = m.parameters?.panelThickness ?? 18;
+      }
+
+      function applyWidth(value) {
+        definition = updateModule(definition, $('module').value, { width: value }).definition;
+        $('widthRange').value = value;
+        $('widthNum').value = value;
+        render();
+      }
+
+      async function init() {
+        const res = await fetch('./fixtures/kitchen-2500x1500/project.json');
+        definition = await res.json();
+
+        $('module').innerHTML = definition.modules
+          .map((m) => `<option value="${m.id}">${m.id} (${m.wallId})</option>`)
+          .join('');
+
+        $('module').addEventListener('change', syncControls);
+        $('widthRange').addEventListener('input', (e) => applyWidth(Number(e.target.value)));
+        $('widthNum').addEventListener('change', (e) => applyWidth(Number(e.target.value)));
+        $('depthNum').addEventListener('change', (e) => {
+          definition = updateModule(definition, $('module').value, { depth: Number(e.target.value) }).definition;
+          render();
+        });
+        $('panelNum').addEventListener('change', (e) => {
+          definition = updateModule(definition, $('module').value, {
+            parameters: { panelThickness: Number(e.target.value) },
+          }).definition;
+          render();
+        });
+        $('reset').addEventListener('click', async () => {
+          definition = await (await fetch('./fixtures/kitchen-2500x1500/project.json')).json();
+          syncControls();
+          render();
+        });
+
+        syncControls();
+        render();
+      }
+
+      init();
+    </script>
+  </body>
+</html>

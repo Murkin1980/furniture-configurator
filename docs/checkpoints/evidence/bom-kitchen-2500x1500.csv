@@ -1,0 +1,12 @@
+label,material,length_mm,width_mm,thickness_mm,grain,qty,area_m2,edge_banding_m,band_L_start,band_L_end,band_W_start,band_W_end
+"Царга верхняя","ldsp_18_white","434","100","18","length","2","0.086800","0.000","false","false","false","false"
+"Дно","ldsp_18_white","434","560","18","length","2","0.486080","0.868","false","true","false","false"
+"Боковина левая","ldsp_18_white","560","720","18","length","12","4.838400","6.720","false","true","false","false"
+"Царга верхняя","ldsp_18_white","564","100","18","length","3","0.169200","0.000","false","false","false","false"
+"Дно","ldsp_18_white","564","560","18","length","3","0.947520","1.692","false","true","false","false"
+"Царга верхняя","ldsp_18_white","664","100","18","length","1","0.066400","0.000","false","false","false","false"
+"Дно","ldsp_18_white","664","560","18","length","1","0.371840","0.664","false","true","false","false"
+"Фасад","mdf_matte_white","470","720","18","none","2","0.676800","4.760","true","true","true","true"
+"Фасад","mdf_matte_white","600","720","18","none","3","1.296000","7.920","true","true","true","true"
+"Фасад","mdf_matte_white","700","720","18","none","1","0.504000","2.840","true","true","true","true"
+"TOTAL","","","","","","30","9.443040","25.464","","","",""

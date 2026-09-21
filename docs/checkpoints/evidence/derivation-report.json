@@ -1,0 +1,345 @@
+{
+  "generatedBy": "src/kernel/tools/render-evidence.js",
+  "fixture": "fixtures/kitchen-2500x1500/project.json",
+  "room": {
+    "id": "room-l",
+    "orientation": "ccw",
+    "walls": [
+      {
+        "id": "wall-a",
+        "length": 2500,
+        "angleDeg": 0,
+        "inwardNormal": {
+          "x": 0,
+          "y": 1
+        }
+      },
+      {
+        "id": "wall-b",
+        "length": 1500,
+        "angleDeg": 90,
+        "inwardNormal": {
+          "x": -1,
+          "y": 0
+        }
+      },
+      {
+        "id": "wall-c",
+        "length": 1500,
+        "angleDeg": 180,
+        "inwardNormal": {
+          "x": 0,
+          "y": -1
+        }
+      },
+      {
+        "id": "wall-d",
+        "length": 1000,
+        "angleDeg": 90,
+        "inwardNormal": {
+          "x": -1,
+          "y": 0
+        }
+      },
+      {
+        "id": "wall-e",
+        "length": 1000,
+        "angleDeg": 180,
+        "inwardNormal": {
+          "x": 0,
+          "y": -1
+        }
+      },
+      {
+        "id": "wall-f",
+        "length": 2500,
+        "angleDeg": -90,
+        "inwardNormal": {
+          "x": 1,
+          "y": 0
+        }
+      }
+    ],
+    "openings": [
+      {
+        "id": "window-1",
+        "kind": "window",
+        "wallId": "wall-c",
+        "offset": 400,
+        "width": 900
+      },
+      {
+        "id": "door-1",
+        "kind": "door",
+        "wallId": "wall-e",
+        "offset": 200,
+        "width": 800
+      }
+    ]
+  },
+  "corners": [
+    {
+      "id": "wall-a__wall-b",
+      "point": {
+        "x": 2500,
+        "y": 0
+      },
+      "turnDeg": 90,
+      "endGap": 0,
+      "startGap": 0,
+      "owner": "a4",
+      "ownerDepth": 560
+    },
+    {
+      "id": "wall-b__wall-c",
+      "point": {
+        "x": 2500,
+        "y": 1500
+      },
+      "turnDeg": 90,
+      "endGap": 0,
+      "startGap": 0,
+      "owner": "b2",
+      "ownerDepth": 560
+    },
+    {
+      "id": "wall-c__wall-d",
+      "point": {
+        "x": 1000,
+        "y": 1500
+      },
+      "turnDeg": -90,
+      "endGap": 0,
+      "startGap": 0,
+      "owner": null,
+      "ownerDepth": null
+    },
+    {
+      "id": "wall-d__wall-e",
+      "point": {
+        "x": 1000,
+        "y": 2500
+      },
+      "turnDeg": 90,
+      "endGap": 0,
+      "startGap": 0,
+      "owner": null,
+      "ownerDepth": null
+    },
+    {
+      "id": "wall-e__wall-f",
+      "point": {
+        "x": 0,
+        "y": 2500
+      },
+      "turnDeg": 90,
+      "endGap": 0,
+      "startGap": 0,
+      "owner": null,
+      "ownerDepth": null
+    },
+    {
+      "id": "wall-f__wall-a",
+      "point": {
+        "x": 0,
+        "y": 0
+      },
+      "turnDeg": 90,
+      "endGap": 0,
+      "startGap": 0,
+      "owner": "a1",
+      "ownerDepth": 560
+    }
+  ],
+  "reservations": [
+    {
+      "wallId": "wall-a",
+      "atStart": 0,
+      "atEnd": 0
+    },
+    {
+      "wallId": "wall-b",
+      "atStart": 560,
+      "atEnd": 0
+    },
+    {
+      "wallId": "wall-c",
+      "atStart": 560,
+      "atEnd": 0
+    },
+    {
+      "wallId": "wall-d",
+      "atStart": 0,
+      "atEnd": 0
+    },
+    {
+      "wallId": "wall-e",
+      "atStart": 0,
+      "atEnd": 0
+    },
+    {
+      "wallId": "wall-f",
+      "atStart": 0,
+      "atEnd": 560
+    }
+  ],
+  "modules": [
+    {
+      "id": "a1",
+      "wallId": "wall-a",
+      "width": 600,
+      "height": 720,
+      "depth": 560,
+      "wallOffset": 0
+    },
+    {
+      "id": "a2",
+      "wallId": "wall-a",
+      "width": 600,
+      "height": 720,
+      "depth": 560,
+      "wallOffset": 600
+    },
+    {
+      "id": "a3",
+      "wallId": "wall-a",
+      "width": 600,
+      "height": 720,
+      "depth": 560,
+      "wallOffset": 1200
+    },
+    {
+      "id": "a4",
+      "wallId": "wall-a",
+      "width": 700,
+      "height": 720,
+      "depth": 560,
+      "wallOffset": 1800
+    },
+    {
+      "id": "b1",
+      "wallId": "wall-b",
+      "width": 470,
+      "height": 720,
+      "depth": 560,
+      "wallOffset": 560
+    },
+    {
+      "id": "b2",
+      "wallId": "wall-b",
+      "width": 470,
+      "height": 720,
+      "depth": 560,
+      "wallOffset": 1030
+    }
+  ],
+  "occupancy": [
+    {
+      "wallId": "wall-a",
+      "occupied": [
+        {
+          "from": 0,
+          "to": 2500
+        }
+      ],
+      "free": []
+    },
+    {
+      "wallId": "wall-b",
+      "occupied": [
+        {
+          "from": 560,
+          "to": 1500
+        }
+      ],
+      "free": [
+        {
+          "from": 0,
+          "to": 560
+        }
+      ]
+    },
+    {
+      "wallId": "wall-c",
+      "occupied": [],
+      "free": [
+        {
+          "from": 0,
+          "to": 1500
+        }
+      ]
+    },
+    {
+      "wallId": "wall-d",
+      "occupied": [],
+      "free": [
+        {
+          "from": 0,
+          "to": 1000
+        }
+      ]
+    },
+    {
+      "wallId": "wall-e",
+      "occupied": [],
+      "free": [
+        {
+          "from": 0,
+          "to": 1000
+        }
+      ]
+    },
+    {
+      "wallId": "wall-f",
+      "occupied": [],
+      "free": [
+        {
+          "from": 0,
+          "to": 2500
+        }
+      ]
+    }
+  ],
+  "totals": {
+    "lines": 10,
+    "panels": 30,
+    "areaM2": 9.443039999999998,
+    "bandingM": 25.464000000000002
+  },
+  "cuttingGroups": [
+    {
+      "material": "ldsp_18_white",
+      "thickness": 18,
+      "panels": 24,
+      "areaM2": 6.966239999999999,
+      "bandingM": 9.944000000000003,
+      "lines": [
+        "ldsp_18_white|18|434|100|length|----",
+        "ldsp_18_white|18|434|560|length|-L--",
+        "ldsp_18_white|18|560|720|length|-L--",
+        "ldsp_18_white|18|564|100|length|----",
+        "ldsp_18_white|18|564|560|length|-L--",
+        "ldsp_18_white|18|664|100|length|----",
+        "ldsp_18_white|18|664|560|length|-L--"
+      ],
+      "sheetAreaM2": 5.776536,
+      "sheetEstimateLowerBound": 2
+    },
+    {
+      "material": "mdf_matte_white",
+      "thickness": 18,
+      "panels": 6,
+      "areaM2": 2.4768,
+      "bandingM": 15.52,
+      "lines": [
+        "mdf_matte_white|18|470|720|none|LLWW",
+        "mdf_matte_white|18|600|720|none|LLWW",
+        "mdf_matte_white|18|700|720|none|LLWW"
+      ],
+      "sheetAreaM2": 5.776536,
+      "sheetEstimateLowerBound": 1
+    }
+  ],
+  "issues": [],
+  "partCount": 30
+}
