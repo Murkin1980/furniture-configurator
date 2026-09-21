@@ -1,0 +1,28 @@
+{
+  "id": "kitchen-corner",
+  "name": "L kitchen with an auto blind-corner cabinet (CP-13)",
+  "units": "mm",
+  "source": "CP-13 blind-corner fixture: corner cabinet width 1120, adjacent run depth 560",
+  "room": {
+    "id": "room-rect",
+    "height": 2500,
+    "walls": [
+      { "id": "wall-a", "start": { "x": 0, "y": 0 }, "end": { "x": 2500, "y": 0 }, "thickness": 100 },
+      { "id": "wall-b", "start": { "x": 2500, "y": 0 }, "end": { "x": 2500, "y": 1500 }, "thickness": 100 },
+      { "id": "wall-c", "start": { "x": 2500, "y": 1500 }, "end": { "x": 0, "y": 1500 }, "thickness": 100 },
+      { "id": "wall-d", "start": { "x": 0, "y": 1500 }, "end": { "x": 0, "y": 0 }, "thickness": 100 }
+    ],
+    "openings": []
+  },
+  "installation": { "plinthHeight": 100, "worktopThickness": 38 },
+  "runs": [
+    { "wallId": "wall-a", "startPoint": "start", "moduleIds": ["a1", "c1"] },
+    { "wallId": "wall-b", "startPoint": "start", "moduleIds": ["b1"] }
+  ],
+  "modules": [
+    { "id": "a1", "type": "base-cabinet", "width": 1380, "height": 720, "depth": 560 },
+    { "id": "c1", "type": "base-cabinet", "width": 1120, "height": 720, "depth": 560, "parameters": { "corner": { "kind": "blind", "auto": true, "clearance": 0 } } },
+    { "id": "b1", "type": "base-cabinet", "width": 600, "height": 720, "depth": 560 }
+  ],
+  "sheet": { "sheetWidth": 2800, "sheetHeight": 2070, "kerf": 4 }
+}

@@ -32,6 +32,7 @@ import {
   layoutModules,
   wallOccupancy,
 } from '../placement/placement.js';
+import { deriveBlindCorners } from '../placement/blindCorner.js';
 import { bomTotals, cuttingGroups, deriveBom, deriveParts } from '../bom/bom.js';
 import { validateProject } from '../validation/validate.js';
 
@@ -103,12 +104,20 @@ export function buildProject(definition) {
   //    reservations and openings; each run sets its wall's fill direction).
   //    Then attach the derived Z elevation so every 3D/export consumer reads
   //    the SAME numbers (no independent vertical formula anywhere).
-  const modules = layoutModules(room, ordered, { runs: runsStartPoints(runs) }).map((m) => {
+  const placed = layoutModules(room, ordered, { runs: runsStartPoints(runs) }).map((m) => {
     const el = moduleElevation(installation, m);
     return el
       ? { ...m, bottomZ: el.bottomZ, topZ: el.topZ }
       : { ...m, bottomZ: null, topZ: null };
   });
+
+  // 2a. Derived blind-corner geometry (CP-13): runs AFTER placement (it reads
+  //     placed footprints) and BEFORE parts, so the one derived facadeWidth flows
+  //     into parts/BOM/3D/checklist. Never journaled - recomputed every build.
+  const cornerMap = deriveBlindCorners(room, placed);
+  const modules = placed.map((m) =>
+    cornerMap.has(m.id) ? { ...m, cornerDerived: cornerMap.get(m.id) } : m,
+  );
 
   // 2b. Derived worktop readout per base run (level? top elevation?).
   const worktops = room.walls

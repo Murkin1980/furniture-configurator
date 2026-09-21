@@ -41,6 +41,22 @@ export function validateProject(room, modules, opts = {}) {
         message: `module "${m.id}" top ${m.topZ} mm exceeds room height ${room.height} mm`,
       });
     }
+    // CP-13 blind-corner derivation errors (stable, machine-readable codes).
+    const cd = m.cornerDerived;
+    if (cd?.error) {
+      const detail = {
+        CORNER_OWNER_INVALID: 'does not own/touch the room corner it declares',
+        CORNER_ANGLE_UNSUPPORTED: 'corner is not 90 deg (unsupported in v1)',
+        CORNER_NEIGHBOR_MISSING: 'no adjacent run to derive the blind depth from',
+        CORNER_FACADE_INVALID: `derived facade width ${cd.facadeWidth} mm is not usable`,
+      }[cd.error] ?? cd.error;
+      issues.push({
+        code: cd.error,
+        severity: 'error',
+        subject: m.id,
+        message: `corner cabinet "${m.id}": ${detail}`,
+      });
+    }
   }
   for (const w of room.walls) {
     const bases = modules.filter((x) => x.wallId === w.id && x.type === 'base-cabinet');

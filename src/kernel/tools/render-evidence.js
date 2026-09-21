@@ -179,6 +179,33 @@ await writeFile(
   'utf8',
 );
 
+// CP-13 evidence: the auto blind-corner kitchen and its derived facade.
+const corner = JSON.parse(
+  readFileSync(resolve(ROOT, 'fixtures/kitchen-corner/project.json'), 'utf8'),
+);
+const cb = buildProject(corner);
+await writeFile(resolve(OUT, 'iso-kitchen-corner.svg'), isoSvg(cb), 'utf8');
+await writeFile(
+  resolve(OUT, 'corner-report.json'),
+  JSON.stringify(
+    {
+      generatedBy: 'src/kernel/tools/render-evidence.js',
+      fixture: 'fixtures/kitchen-corner/project.json',
+      corners: cb.modules
+        .filter((m) => m.cornerDerived)
+        .map((m) => ({ id: m.id, width: m.width, ...m.cornerDerived })),
+      facadeParts: cb.parts
+        .filter((p) => p.role === 'facade')
+        .map((p) => ({ id: p.id, moduleId: p.moduleId, length: p.length })),
+      checklist: checklist(cb).map((i) => ({ id: i.id, status: i.status })),
+      issues: cb.issues.map((i) => i.code),
+    },
+    null,
+    2,
+  ) + '\n',
+  'utf8',
+);
+
 const offset = (b, id) => b.modules.find((m) => m.id === id).wallOffset;
 console.log('evidence written to docs/checkpoints/evidence/');
 console.log(`  baseline: parts=${base.parts.length} bomLines=${base.bom.length} panels=${base.totals.panels} area=${base.totals.areaM2.toFixed(4)}m2`);
@@ -190,6 +217,8 @@ console.log(`  multirun -> errors ${mr.issues.filter((i) => i.severity === 'erro
 console.log(`  straight -> offsets ${straight.modules.map((m) => m.wallOffset).join(',')} errors ${straight.issues.filter((i) => i.severity === 'error').length}`);
 console.log(`  p-shape  -> ${pshape.occupancy.map((o) => `${o.wallId} usable=${Math.round(o.usable)}`).join(' ')}; errors ${pshape.issues.filter((i) => i.severity === 'error').length}`);
 console.log(`  scene3d  -> ${sceneGraph(base).partCount} part boxes, ${sceneGraph(base).walls.length} wall boxes, ${sceneGraph(base).modules.length} modules`);
+console.log(`  corner   -> ${cb.modules.filter((m) => m.cornerDerived).map((m) => `${m.id}: facade ${m.cornerDerived.facadeWidth} (adj ${m.cornerDerived.adjacentDepth} ${m.cornerDerived.blindSide})`).join(' ')}`);
+console.log(`  corner   -> checklist ${checklist(cb).map((i) => `${i.id}=${i.status}`).join(' ')}`);
 console.log(`  vertical -> installation plinth=${vb.installation.plinthHeight} worktop=${vb.installation.worktopThickness}`);
 console.log(`  vertical -> elevations ${vb.modules.map((m) => `${m.id}:${m.bottomZ}..${m.topZ}`).join(' ')}`);
 console.log(`  vertical -> worktop ${vb.worktops.map((w) => `${w.wallId} top=${w.topZ}${w.level ? '' : ' (unlevel)'}`).join(' ')}`);

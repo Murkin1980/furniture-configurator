@@ -201,3 +201,22 @@ The canonical project gains one explicit vertical input, and elevation becomes d
   no renderer or export re-derives the formula. The CP-11 checklist worktop-height is now a real
   pass/fail and top-depth is measured from the wall-cabinet generator.
 - Verified by `cp12-vertical.test.js` on the new `kitchen-vertical` fixture; 153 tests green.
+
+## CP-13 addendum (auto blind-corner cabinet)
+
+The first real parametric corner cabinet, derived from geometry (owner spec
+docs/checkpoints/CP-13-SPEC.md):
+
+- A base cabinet declares `parameters.corner = { kind:'blind', auto:true, clearance }`.
+  placement/blindCorner.js deriveBlindCorners() runs after XY placement and before parts: it
+  identifies the owned room corner via cornerOccupancy (works at either wall end and for reversed
+  runs), takes the neighbouring run's depth from the adjacent placed module, and derives
+  blindWidth = adjacentDepth + clearance and facadeWidth = ownerWidth - blindWidth. No 560 constant.
+- The derived facadeWidth is attached as module.cornerDerived (in-memory, recomputed each build,
+  never journaled) and is the ONE facade dimension consumed by furniture/cabinet.js, the BOM,
+  scene3d/glb/iso and the checklist. buildProject() reordered so corner derivation precedes parts.
+- checklist corner-facade now reads cornerDerived.facadeWidth (not module.width); legacy
+  `corner:true` modules without derivation fall back to width. validate.js adds CORNER_OWNER_INVALID,
+  CORNER_ANGLE_UNSUPPORTED, CORNER_NEIGHBOR_MISSING, CORNER_FACADE_INVALID.
+- Verified by `cp13-blindcorner.test.js` (14 tests) on the new `kitchen-corner` fixture plus
+  reversed-direction and two-corner layouts; 167 tests green.

@@ -1,0 +1,69 @@
+{
+  "generatedBy": "src/kernel/tools/render-evidence.js",
+  "fixture": "fixtures/kitchen-corner/project.json",
+  "corners": [
+    {
+      "id": "c1",
+      "width": 1120,
+      "ownerWallId": "wall-a",
+      "clearance": 0,
+      "cornerId": "wall-a__wall-b",
+      "adjacentWallId": "wall-b",
+      "blindSide": "end",
+      "adjacentModuleId": "b1",
+      "adjacentDepth": 560,
+      "blindWidth": 560,
+      "facadeWidth": 560
+    }
+  ],
+  "facadeParts": [
+    {
+      "id": "a1__facade",
+      "moduleId": "a1",
+      "length": 1380
+    },
+    {
+      "id": "c1__facade",
+      "moduleId": "c1",
+      "length": 560
+    },
+    {
+      "id": "b1__facade",
+      "moduleId": "b1",
+      "length": 600
+    }
+  ],
+  "checklist": [
+    {
+      "id": "fits-room",
+      "status": "pass"
+    },
+    {
+      "id": "no-gaps",
+      "status": "fail"
+    },
+    {
+      "id": "base-depth",
+      "status": "pass"
+    },
+    {
+      "id": "top-depth",
+      "status": "na"
+    },
+    {
+      "id": "corner-facade",
+      "status": "pass"
+    },
+    {
+      "id": "worktop-height",
+      "status": "pass"
+    },
+    {
+      "id": "sink-width",
+      "status": "na"
+    }
+  ],
+  "issues": [
+    "RUN_GAP"
+  ]
+}

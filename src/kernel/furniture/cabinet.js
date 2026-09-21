@@ -163,13 +163,19 @@ export function generateBaseCabinet(module) {
     }),
   );
 
-  // Facade representation, hung on the front face.
+  // Facade representation, hung on the front face. For an auto blind corner
+  // (CP-13) the accessible facade is the DERIVED facadeWidth, positioned on the
+  // side opposite the blind zone - the carcass stays full width.
+  const cd = module.cornerDerived;
+  const useCornerFacade = cd && !cd.error && cd.facadeWidth > 0;
+  const facadeLen = useCornerFacade ? cd.facadeWidth : W;
+  const facadeX0 = useCornerFacade && cd.blindSide === 'start' ? cd.blindWidth : 0;
   parts.push(
     makePart({
       module,
       role: 'facade',
       name: 'Фасад',
-      length: W,
+      length: facadeLen,
       width: H,
       thickness: ft,
       material: p.facadeMaterial,
@@ -180,7 +186,7 @@ export function generateBaseCabinet(module) {
         alongWidthStart: true,
         alongWidthEnd: true,
       },
-      box: { min: { x: 0, y: D, z: 0 }, max: { x: W, y: D + ft, z: H } },
+      box: { min: { x: facadeX0, y: D, z: 0 }, max: { x: facadeX0 + facadeLen, y: D + ft, z: H } },
     }),
   );
 

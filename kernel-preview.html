@@ -48,6 +48,7 @@
               <option value="./fixtures/kitchen-straight/project.json">Straight 4000 (CP-02)</option>
               <option value="./fixtures/kitchen-p/project.json">P-shaped two parallel runs (CP-02)</option>
               <option value="./fixtures/kitchen-vertical/project.json">Vertical: base + wall + tall (CP-12)</option>
+              <option value="./fixtures/kitchen-corner/project.json">L with auto blind corner (CP-13)</option>
             </select>
           </label>
           <label>module
@@ -112,6 +113,11 @@
       <section>
         <h2>Vertical (CP-12, derived elevation)</h2>
         <div id="vertical" class="kv"></div>
+      </section>
+
+      <section>
+        <h2>Blind corners (CP-13, derived facade)</h2>
+        <div id="corners13" class="kv"></div>
       </section>
 
       <section class="wide">
@@ -214,6 +220,23 @@
           );
         }
         $('vertical').innerHTML = vRows.join('');
+
+        // Blind corners (CP-13): derived facade read straight from the bundle.
+        const cornerMods = bundle.modules.filter((m) => m.cornerDerived);
+        $('corners13').innerHTML = cornerMods.length
+          ? cornerMods
+              .map((m) => {
+                const cd = m.cornerDerived;
+                const cls = cd.error ? 'issue-error' : 'ok';
+                const body = cd.error
+                  ? cd.error
+                  : `corner ${cd.cornerId} · adj ${cd.adjacentWallId}/${cd.adjacentModuleId} ` +
+                    `depth ${fmt(cd.adjacentDepth)} · blind ${fmt(cd.blindWidth)} · ` +
+                    `facade ${fmt(cd.facadeWidth)} (${cd.blindSide})`;
+                return `<div class="${cls}"><span>${m.id}</span><span>${body}</span></div>`;
+              })
+              .join('')
+          : '<div class="na">no auto blind-corner cabinet</div>';
 
         // BOM.
         const rows = bundle.bom

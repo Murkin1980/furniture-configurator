@@ -171,6 +171,22 @@ MODULE_ABOVE_ROOM. furniture/cabinet.js gained real wall-cabinet and tall-cabine
 same MODULE_GENERATORS registry as base cabinets, so parts/BOM/3D/GLB/iso all flow unchanged. The
 views read `module.bottomZ` for the Z offset - no renderer or export re-derives the formula.
 
+## Auto blind-corner cabinet (CP-13)
+
+A base cabinet can declare `parameters.corner = { kind:'blind', auto:true, clearance:0 }`.
+placement/blindCorner.js then derives, AFTER XY placement and BEFORE parts, which room corner the
+cabinet owns (geometrically, via cornerOccupancy - either wall end, reversed runs included), the
+neighbouring run's depth, and the accessible facade:
+
+    blindWidth  = adjacentDepth + clearance
+    facadeWidth = ownerWidth - blindWidth        (no 560 constant anywhere)
+
+The derived facadeWidth is attached as `module.cornerDerived` (never journaled - recomputed each
+build) and is the SINGLE facade dimension used by the generator, BOM, 3D/GLB, iso and the CP-11
+corner-facade checklist (which no longer uses module.width). Undeclarable corners raise stable
+validation codes: CORNER_OWNER_INVALID, CORNER_ANGLE_UNSUPPORTED, CORNER_NEIGHBOR_MISSING,
+CORNER_FACADE_INVALID. Non-corner cabinets are untouched.
+
 ## Export (CP-05)
 
 view/glb.js exports binary glTF 2.0 straight from sceneGraph(): one TRS node per box over a shared
@@ -187,7 +203,7 @@ cutting output; the CSV half ships since CP-01. kernel-preview.html offers "down
 ## Run it
 
 ```
-npm test                                   # node:test, 153 tests, zero deps
+npm test                                   # node:test, 167 tests, zero deps
 node src/kernel/tools/serve.js 8080        # static server
 # open http://127.0.0.1:8080/kernel-preview.html   (debug preview)
 # open http://127.0.0.1:8080/kernel-3d.html        (derived 3D view, CP-03)

@@ -83,7 +83,11 @@ export function checklist(bundle) {
     const m = bundle.modules.find((x) => x.id === c.occupancy.moduleId);
     if (m && m.type === 'base-cabinet' && m.parameters?.corner) {
       hasCorner = true;
-      if (m.width < L.cornerFacadeMin) narrow.push(`${m.id}=${m.width}`);
+      // CP-13: an auto corner reports its DERIVED facade width (never module.width).
+      // A legacy `corner:true` module without derivation falls back to its width.
+      const cd = m.cornerDerived;
+      const fw = cd ? cd.facadeWidth : m.width;
+      if (!(fw >= L.cornerFacadeMin)) narrow.push(`${m.id}=${fw ?? 'n/a'}`);
     }
   }
   items.push({
